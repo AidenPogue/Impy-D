@@ -39,3 +39,10 @@
 
 # debug information files
 *.dwo
+
+#imgui stuff
+imgui.ini
+
+build/*
+
+.idea/*
