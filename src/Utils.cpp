@@ -54,7 +54,7 @@ bool ImMPD::Utils::LoadTextureFromMemory(const void* data, size_t data_size, GLu
     return true;
 }
 
-void ImMPD::Utils::CreateOrResizeBinaryBuffer(void *buffer, size_t &currentSize, size_t newSize)
+void *ImMPD::Utils::CreateOrResizeBinaryBuffer(void *buffer, size_t &currentSize, size_t newSize)
 {
     if (buffer == nullptr)
     {
@@ -66,6 +66,7 @@ void ImMPD::Utils::CreateOrResizeBinaryBuffer(void *buffer, size_t &currentSize,
     }
     assert(buffer != nullptr);
     currentSize = newSize;
+    return buffer;
 }
 
 std::string ImMPD::Utils::MsToDurationString(unsigned milliseconds)
