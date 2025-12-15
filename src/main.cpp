@@ -1,24 +1,13 @@
-// Dear ImGui: standalone example application for GLFW + OpenGL 3, using programmable pipeline
-// (GLFW is a cross-platform general purpose library for handling windows, inputs, OpenGL/Vulkan/Metal graphics context creation, etc.)
-
-// Learn about Dear ImGui:
-// - FAQ                  https://dearimgui.com/faq
-// - Getting Started      https://dearimgui.com/getting-started
-// - Documentation        https://dearimgui.com/docs (same as your local docs/ folder).
-// - Introduction, links and more at the top of imgui.cpp
-
 #include "imgui.h"
 #include "backends/imgui_impl_glfw.h"
 #include "backends/imgui_impl_opengl3.h"
 #include "MpdClientWrapper.hpp"
-#include "panels/PlaybackButtons.hpp"
-#include "panels/SeekBar.hpp"
 #include <stdio.h>
 #include <iostream>
 
-#include "panels/Container.hpp"
-#include "panels/QueueView.hpp"
-#include "panels/VolumeControl.hpp"
+#include "Constants.hpp"
+#include "MainWindow.hpp"
+#include "PanelFactory/PanelRegistry.hpp"
 #define GL_SILENCE_DEPRECATION
 #if defined(IMGUI_IMPL_OPENGL_ES2)
 #include <GLES2/gl2.h>
@@ -40,13 +29,8 @@ static void glfw_error_callback(int error, const char* description)
     fprintf(stderr, "GLFW Error %d: %s\n", error, description);
 }
 
-float fpsLimit = 1 / 30.0;
-
-// Main code
 int main(int, char**)
 {
-    MpdClientWrapper *client = new MpdClientWrapper("127.0.0.1", 6600);
-
 #ifdef GLFW_PLATFORM_WAYLAND
     if (glfwPlatformSupported(GLFW_PLATFORM_WAYLAND)) {
         glfwInitHint(GLFW_PLATFORM, GLFW_PLATFORM_WAYLAND);
@@ -88,7 +72,7 @@ int main(int, char**)
 
     // Create window with graphics context
     float main_scale = ImGui_ImplGlfw_GetContentScaleForMonitor(glfwGetPrimaryMonitor()); // Valid on GLFW 3.3+ only
-    GLFWwindow* window = glfwCreateWindow((int)(1280 * main_scale), (int)(800 * main_scale), "Dear ImGui GLFW+OpenGL3 example", nullptr, nullptr);
+    GLFWwindow* window = glfwCreateWindow((int)(1280 * main_scale), (int)(800 * main_scale), ImpyD::ImpyDAppName, nullptr, nullptr);
     if (window == nullptr)
         return 1;
     glfwMakeContextCurrent(window);
@@ -147,23 +131,18 @@ int main(int, char**)
 
     // Our state
     bool show_demo_window = true;
-    bool show_another_window = false;
     ImVec4 clear_color = ImVec4(0.45f, 0.55f, 0.60f, 1.00f);
 
-    double lastDrawTime = 0; 
+    //Register built in panels.
+    //This is mad ugly brah
+    // ImpyD::PanelRegistry::RegisterPanel("impy-d_container", [](int id) {return std::make_unique<ImpyD::Container>(id);});
+    // ImpyD::PanelRegistry::RegisterPanel("impy-d_seekbar", [](int id) {return std::make_unique<ImpyD::SeekBar>(id);});
+    // ImpyD::PanelRegistry::RegisterPanel("impy-d_volumecontrol", [](int id) {return std::make_unique<ImpyD::VolumeControl>(id);});
+    // ImpyD::PanelRegistry::RegisterPanel("impy-d_playbackbuttons", [](int id) {return std::make_unique<ImpyD::PlaybackButtonsPanel>(id);});
+    // ImpyD::PanelRegistry::RegisterPanel("impy-d_queueview", [](int id) {return std::make_unique<ImpyD::QueueView>(id);});
 
-    size_t numPanels = 5;
-    ImpyD::PanelBase *panels[] = {new ImpyD::Container(), new ImpyD::PlaybackButtonsPanel(), new ImpyD::SeekBar(), new ImpyD::VolumeControl(), new ImpyD::QueueView()};
-
-    if (client->GetIsConnected())
-    {
-        for (auto *panel : panels)
-        {
-            client->AddIdleListener([panel](MpdClientWrapper* client, MpdIdleEventData* data) {panel->OnIdleEvent(client, data);});
-            panel->InitState(client);
-        }
-    }
-
+    MpdClientWrapper client = MpdClientWrapper("127.0.0.1", 6600);
+    auto mainWindow = ImpyD::MainWindow();
 
     while (!glfwWindowShouldClose(window))
     {
@@ -187,41 +166,12 @@ int main(int, char**)
 
         ImGui::DockSpaceOverViewport();
 
-        // 1. Show the big demo window (Most of the sample code is in ImGui::ShowDemoWindow()! You can browse its code to learn more about Dear ImGui!).
         if (show_demo_window)
             ImGui::ShowDemoWindow(&show_demo_window);
 
-        // 2. Show a simple window that we create ourselves. We use a Begin/End pair to create a named window.
-        {
-            static float f = 0.0f;
-            static int counter = 0;
-            
-            for (int i = 0; i < numPanels; i++)
-            {
-                ImpyD::PanelBase *panel = panels[i];
+        client.Poll();
 
-                client->Poll();
-
-                ImGui::PushID(i);
-                panel->Draw(client);
-                ImGui::PopID();
-            }   
-
-            ImGui::Begin("List");
-            
-            if (ImGui::TreeNode("Root"))
-            {
-                
-                if (ImGui::TreeNode("Yo"))
-                {
-                    ImGui::TreePop();
-                }
-
-                ImGui::TreePop();
-            }
-
-            ImGui::End();
-        }
+        mainWindow.Draw(client);
 
         // Rendering
         ImGui::Render();
@@ -244,7 +194,6 @@ int main(int, char**)
         }
 
         glfwSwapBuffers(window);
-        lastDrawTime = glfwGetTime();
     }
 
     // Cleanup

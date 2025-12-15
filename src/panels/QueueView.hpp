@@ -6,29 +6,34 @@
 #define IM_MPD_PLAYLISTVIEW_H
 #include "PanelBase.hpp"
 #include "SongTableColumn.hpp"
+#include "../PanelFactory/RegisterPanel.hpp"
 
 namespace ImpyD
 {
-    class QueueView : public PanelBase
+    class QueueView : public PanelBase, PanelFactory::RegisterPanel<QueueView>
     {
     private:
         std::vector<mpd_song *> currentQueue;
         std::vector<std::vector<std::string>> cellValueCache;
-        unsigned currentId;
+        unsigned currentSongId = 0;
 
         void UpdateQueue(MpdClientWrapper *client);
 
         static void CacheRowIfNeeded(mpd_song *song, const std::vector<SongTableColumn> &columns, std::vector<std::string> &rowCache);
+
     public:
-        QueueView();
+        IMPYD_REGISTER_PANEL_FactoryFunc(QueueView)
+        IMPYD_REGISTER_PANEL_GetFactoryName("Queue View")
 
-        const char * GetTitle() override;
+        QueueView(int panelId) : PanelBase(panelId) {}
 
-        void Draw(MpdClientWrapper *client) override;
+        void DrawContents(MpdClientWrapper &client) override;
 
-        void OnIdleEvent(MpdClientWrapper *client, MpdIdleEventData *data) override;
+        void OnIdleEvent(MpdClientWrapper &client, MpdIdleEventData &data) override;
 
-        void InitState(MpdClientWrapper *client) override;
+        void InitState(MpdClientWrapper &client) override;
+
+        const std::string PanelName() override;
     };
 } // ImMPD
 

@@ -2,16 +2,23 @@
 
 #include "PanelBase.hpp"
 #include "../MpdClientWrapper.hpp"
+#include "../PanelFactory/RegisterPanel.hpp"
 
 namespace ImpyD
 {
-    class PlaybackButtonsPanel : public PanelBase
+    class PlaybackButtonsPanel : public PanelBase, PanelFactory::RegisterPanel<PlaybackButtonsPanel>
     {
     private:
     public:
-        ~PlaybackButtonsPanel();
+        IMPYD_REGISTER_PANEL_FactoryFunc(PlaybackButtonsPanel);
+        IMPYD_REGISTER_PANEL_GetFactoryName("Playback Control Buttons")
 
-        void Draw(MpdClientWrapper *client) override;
-        const char *GetTitle() override;
+        PlaybackButtonsPanel(int panelId) : PanelBase(panelId) {windowFlags = ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoScrollWithMouse;}
+
+        ~PlaybackButtonsPanel() override;
+
+        void DrawContents(MpdClientWrapper &client) override;
+
+        const std::string PanelName() override;
     };
 }

@@ -6,7 +6,6 @@ target_sources(im-mpd
         SeekBar.cpp
         PanelBase.cpp
         VolumeControl.cpp
-        MediaLibraryTree.cpp
         QueueView.cpp
         SongTableColumn.cpp
         Container.cpp

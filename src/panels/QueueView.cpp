@@ -48,102 +48,93 @@ namespace ImpyD
         }
     }
 
-    QueueView::QueueView() : currentId(0), cellValueCache(std::vector<std::vector<std::string>>()), currentQueue(std::vector<mpd_song *>())
-    {
-    }
-
-    const char * QueueView::GetTitle()
-    {
-        return "Playlist View";
-    }
-
-    void QueueView::Draw(MpdClientWrapper *client)
+    void QueueView::DrawContents(MpdClientWrapper &client)
     {
         ImGuiListClipper clipper;
         clipper.Begin(currentQueue.size());
-        if (ImGui::Begin(GetTitle()))
+        if (ImGui::BeginTable("plTable", testColumns.size(), ImGuiTableFlags_Borders | ImGuiTableFlags_Resizable | ImGuiTableFlags_ScrollY))
         {
-            if (ImGui::BeginTable("plTable", testColumns.size(), ImGuiTableFlags_Borders | ImGuiTableFlags_Resizable | ImGuiTableFlags_ScrollY))
+            ImGui::TableSetupScrollFreeze(testColumns.size(), 1);
+            for (const auto &column: testColumns)
             {
-                ImGui::TableSetupScrollFreeze(testColumns.size(), 1);
-                for (const auto &column : testColumns)
-                {
-                    ImGui::TableSetupColumn(column.displayName.c_str());
-                }
-
-                ImGui::TableHeadersRow();
-
-                while (clipper.Step())
-                {
-                    for (int i = clipper.DisplayStart; i < clipper.DisplayEnd; i++)
-                    {
-                        auto song = currentQueue[i];
-                        auto songId = mpd_song_get_id(song);
-                        auto isCurrentSong = songId == currentId;
-                        if (isCurrentSong)
-                        {
-                            ImGui::PushStyleColor(ImGuiCol_Text, ImColor(0,255,0).Value);
-                        }
-
-                        auto &rowCache = cellValueCache[i];
-                        CacheRowIfNeeded(song, testColumns, rowCache);
-
-                        ImGui::TableNextRow();
-
-                        for (const auto &value : rowCache)
-                        {
-                            ImGui::TableNextColumn();
-                            //Make a selectable for the whole row as the first column.
-                            if (ImGui::TableGetColumnIndex() == 0)
-                            {
-                                ImGui::PushID(i);
-                                if (ImGui::Selectable(value.c_str(), false, ImGuiSelectableFlags_SpanAllColumns | ImGuiSelectableFlags_AllowDoubleClick)
-                                    && !ImGui::IsMouseDown(0)
-                                    )
-                                {
-                                    client->BeginNoIdle();
-                                    client->PlayId(songId);
-                                    client->EndNoIdle();
-                                }
-                                ImGui::PopID();
-                            }
-                            else
-                            {
-                                ImGui::Text("%s", value.c_str());
-                            }
-
-                        }
-
-                        if (isCurrentSong)
-                        {
-                            ImGui::PopStyleColor();
-                        }
-                    }
-                }
-                ImGui::EndTable();
+                ImGui::TableSetupColumn(column.displayName.c_str());
             }
 
+            ImGui::TableHeadersRow();
+
+            while (clipper.Step())
+            {
+                for (int i = clipper.DisplayStart; i < clipper.DisplayEnd; i++)
+                {
+                    auto song = currentQueue[i];
+                    auto songId = mpd_song_get_id(song);
+                    auto isCurrentSong = songId == currentSongId;
+                    if (isCurrentSong)
+                    {
+                        ImGui::PushStyleColor(ImGuiCol_Text, ImColor(0, 255, 0).Value);
+                    }
+
+                    auto &rowCache = cellValueCache[i];
+                    CacheRowIfNeeded(song, testColumns, rowCache);
+
+                    ImGui::TableNextRow();
+
+                    for (const auto &value: rowCache)
+                    {
+                        ImGui::TableNextColumn();
+                        //Make a selectable for the whole row as the first column.
+                        if (ImGui::TableGetColumnIndex() == 0)
+                        {
+                            ImGui::PushID(i);
+                            if (ImGui::Selectable(value.c_str(), false,
+                                                  ImGuiSelectableFlags_SpanAllColumns |
+                                                  ImGuiSelectableFlags_AllowDoubleClick)
+                                && !ImGui::IsMouseDown(0)
+                            )
+                            {
+                                client.BeginNoIdle();
+                                client.PlayId(songId);
+                                client.EndNoIdle();
+                            }
+                            ImGui::PopID();
+                        } else
+                        {
+                            ImGui::Text("%s", value.c_str());
+                        }
+                    }
+
+                    if (isCurrentSong)
+                    {
+                        ImGui::PopStyleColor();
+                    }
+                }
+            }
+            ImGui::EndTable();
         }
-        ImGui::End();
     }
 
-    void QueueView::OnIdleEvent(MpdClientWrapper *client, MpdIdleEventData *data)
+    void QueueView::OnIdleEvent(MpdClientWrapper &client, MpdIdleEventData &data)
     {
-        if (data->idleEvent == MPD_IDLE_QUEUE)
+        if (data.idleEvent == MPD_IDLE_QUEUE)
         {
-            UpdateQueue(client);
+            UpdateQueue(&client);
         }
-        if (data->idleEvent == MPD_IDLE_PLAYER)
+        if (data.idleEvent == MPD_IDLE_PLAYER)
         {
-            currentId = mpd_status_get_song_id(data->currentStatus);
+            currentSongId = mpd_status_get_song_id(data.currentStatus);
         }
     }
 
-    void QueueView::InitState(MpdClientWrapper *client)
+    void QueueView::InitState(MpdClientWrapper &client)
     {
 
-        client->BeginNoIdle();
-        UpdateQueue(client);
-        client->EndNoIdle();
+        client.BeginNoIdle();
+        UpdateQueue(&client);
+        client.EndNoIdle();
+    }
+
+    const std::string QueueView::PanelName()
+    {
+        return GetFactoryName();
     }
 } // ImMPD

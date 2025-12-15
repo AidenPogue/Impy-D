@@ -9,12 +9,12 @@
 
 namespace ImpyD
 {
-    class Container : public ImpyD::PanelBase
+    class Container : public PanelBase
     {
     public:
-        const char * GetTitle() override;
+        Container(int panelId) : PanelBase(panelId) {}
 
-        void Draw(MpdClientWrapper *client) override;
+        void DrawContents(MpdClientWrapper &client) override;
     };
 }
 

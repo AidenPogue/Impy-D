@@ -6,6 +6,9 @@
 #include <mpd/client.h>
 #include <mpd/async.h>
 
+//For callback typedef, evil...
+class MpdClientWrapper;
+
 struct MpdPlayInfo
 {
     bool isPlaying;
@@ -38,6 +41,8 @@ public:
     }
 };
 
+typedef std::function<void(MpdClientWrapper &, MpdIdleEventData &)> MpdClientIdleEventCallback;
+
 class MpdClientWrapper
 {
 private:
@@ -48,7 +53,8 @@ private:
 
     mpd_connection *connection = nullptr;
 
-    std::list<std::function<void(MpdClientWrapper*, MpdIdleEventData*)>> listeners;
+    std::unordered_map<int, MpdClientIdleEventCallback> listeners;
+    int nextListenerId = 0;
 
     void ThrowIfNotConnected();
     void HandleIdle(mpd_idle idle);
@@ -61,8 +67,14 @@ public:
     ~MpdClientWrapper();
 
     bool GetIsConnected();
-    void AddIdleListener(std::function<void(MpdClientWrapper*, MpdIdleEventData*)> listener);
 
+    /**
+     * Adds an idle listener. Use the returned ID to remove.
+     * @param listener Function to call on idle events.
+     * @return The id of the added listener, used for removal.
+     */
+    int AddIdleListener(MpdClientIdleEventCallback listener);
+    void RemoveIdleListener(int id);
 
     /**
      * Sends the noidle command to MPD. Call this before sending commands *outside of an event handler*

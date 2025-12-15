@@ -17,34 +17,27 @@ namespace ImpyD {
         currentValue = mpd_status_get_volume(status);
     }
 
-    const char * VolumeControl::GetTitle()
+    void VolumeControl::DrawContents(MpdClientWrapper &client)
     {
-        return "Volume Control";
-    }
+        //Set these in constructor?
+        windowFlags = ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoScrollWithMouse;
 
-    void VolumeControl::Draw(MpdClientWrapper *client)
-    {
-        if (ImGui::Begin(GetTitle(), nullptr, ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoScrollWithMouse))
+        const auto oldValue = currentValue;
+
+        const auto sliderEdited = ImGui::SliderInt("Vol", &currentValue, 0, 100, "%d%%");
+        const auto mouseWheel = ImGui::GetIO().MouseWheel;
+        if (!sliderEdited && ImGui::IsItemHovered() && mouseWheel != 0)
         {
-            auto oldValue = currentValue;
-
-            auto sliderEdited = ImGui::SliderInt("Vol", &currentValue, 0, 100, "%d%%");
-            auto mouseWheel = ImGui::GetIO().MouseWheel;
-            if (!sliderEdited && ImGui::IsItemHovered() && mouseWheel != 0)
-            {
-                client->BeginNoIdle();
-                client->ChangeVolume(2 * (int)mouseWheel);
-                client->EndNoIdle();
-            }
-            else if (currentValue != oldValue)
-            {
-                client->BeginNoIdle();
-                client->SetVolume(currentValue);
-                client->EndNoIdle();
-            }
+            client.BeginNoIdle();
+            client.ChangeVolume(2 * (int)mouseWheel);
+            client.EndNoIdle();
         }
-
-        ImGui::End();
+        else if (currentValue != oldValue)
+        {
+            client.BeginNoIdle();
+            client.SetVolume(currentValue);
+            client.EndNoIdle();
+        }
     }
 
     VolumeControl::~VolumeControl()
@@ -52,24 +45,28 @@ namespace ImpyD {
     }
 
 
-
-    void VolumeControl::OnIdleEvent(MpdClientWrapper *client, MpdIdleEventData *data)
+    void VolumeControl::OnIdleEvent(MpdClientWrapper &client, MpdIdleEventData &data)
     {
-        if (data->idleEvent == MPD_IDLE_MIXER)
+        if (data.idleEvent == MPD_IDLE_MIXER)
         {
-            SetState(data->currentStatus);
+            SetState(data.currentStatus);
         }
     }
 
-    void VolumeControl::InitState(MpdClientWrapper *client)
+    void VolumeControl::InitState(MpdClientWrapper &client)
     {
-        client->BeginNoIdle();
-        auto status = client->GetStatus();
+        client.BeginNoIdle();
+        auto status = client.GetStatus();
         SetState(status);
         if (status != nullptr)
         {
             mpd_status_free(status);
         }
-        client->EndNoIdle();
+        client.EndNoIdle();
+    }
+
+    const std::string VolumeControl::PanelName()
+    {
+        return GetFactoryName();
     }
 } // ImMPD

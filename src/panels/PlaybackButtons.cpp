@@ -17,54 +17,39 @@ struct PlaybackButton
     }
 };
 
-static void Toggle_Click(MpdClientWrapper *client)
-{
-    client->Toggle();
-}
+ImpyD::PlaybackButtonsPanel::~PlaybackButtonsPanel() = default;
 
-ImpyD::PlaybackButtonsPanel::~PlaybackButtonsPanel()
+void ImpyD::PlaybackButtonsPanel::DrawContents(MpdClientWrapper &client)
 {
-}
-
-void ImpyD::PlaybackButtonsPanel::Draw(MpdClientWrapper *client)
-{
-    bool result = false;
-
-    if (ImGui::Begin(GetTitle(), nullptr, ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoScrollWithMouse))
+    if (ImGui::BeginPopupContextWindow())
     {
-        if (ImGui::BeginPopupContextWindow(GetTitle()))
-        {
-            // ImGui::Selectable("Test", &test);
-            ImGui::EndPopup();
-        }
-
-        if (ImGui::Button("|<<")) {
-            client->BeginNoIdle();
-            result = client->Prev();
-            client->EndNoIdle();
-        }
-
-        ImGui::SameLine();
-        
-        if (ImGui::Button(">||")) {
-            client->BeginNoIdle();
-            result = client->Toggle();
-            client->EndNoIdle();
-        }
-        ImGui::SameLine();
-
-        if (ImGui::Button(">>|")) {
-            client->BeginNoIdle();
-            result = client->Next();
-            client->EndNoIdle();
-        }
-        
+        // ImGui::Selectable("Test", &test);
+        ImGui::EndPopup();
     }
 
-    ImGui::End();
+    if (ImGui::Button("|<<")) {
+        client.BeginNoIdle();
+        client.Prev();
+        client.EndNoIdle();
+    }
+
+    ImGui::SameLine();
+
+    if (ImGui::Button(">||")) {
+        client.BeginNoIdle();
+        client.Toggle();
+        client.EndNoIdle();
+    }
+    ImGui::SameLine();
+
+    if (ImGui::Button(">>|")) {
+        client.BeginNoIdle();
+        client.Next();
+        client.EndNoIdle();
+    }
 }
 
-const char *ImpyD::PlaybackButtonsPanel::GetTitle()
+const std::string ImpyD::PlaybackButtonsPanel::PanelName()
 {
-    return "Playback Control Buttons";
+    return GetFactoryName();
 }

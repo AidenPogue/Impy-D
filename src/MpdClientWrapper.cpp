@@ -15,8 +15,6 @@ MpdClientWrapper::MpdClientWrapper(const char* hostname, uint port, unsigned bin
     this->hostname = hostname;
     this->port = port;
 
-    listeners = std::list<std::function<void(MpdClientWrapper*, MpdIdleEventData*)>>(8);
-
     Connect();
 
     /*
@@ -49,14 +47,14 @@ void MpdClientWrapper::HandleIdle(mpd_idle idle)
     eventData.currentSong = GetCurrentSong();
     eventData.currentStatus = GetStatus();
 
-    for (const auto &listener : listeners)
+    for (const auto &pair : listeners)
     {
-        if (!listener)
+        if (!pair.second)
         {
             continue;
         }
 
-        listener(this, &eventData);
+        pair.second(*this, eventData);
     }
 
     // playInfo.isPlaying = mpd_status_get_state(status) == MPD_STATE_PLAY;
@@ -117,9 +115,20 @@ bool MpdClientWrapper::GetIsConnected()
     return true;
 }
 
-void MpdClientWrapper::AddIdleListener(std::function<void(MpdClientWrapper *, MpdIdleEventData *)> listener)
+int MpdClientWrapper::AddIdleListener(MpdClientIdleEventCallback listener)
 {
-    listeners.push_back(listener);
+    auto id = nextListenerId++;
+    listeners.emplace(id, listener);
+    return id;
+}
+
+void MpdClientWrapper::RemoveIdleListener(int id)
+{
+    if (listeners.find(id) == listeners.end())
+    {
+        throw std::runtime_error("No listener with id " + std::to_string(id) + " registered.");
+    }
+    listeners.erase(id);
 }
 
 void MpdClientWrapper::BeginNoIdle()

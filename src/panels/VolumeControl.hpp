@@ -5,25 +5,32 @@
 #ifndef IM_MPD_VOLUMECONTROL_H
 #define IM_MPD_VOLUMECONTROL_H
 #include "PanelBase.hpp"
+#include "../PanelFactory/RegisterPanel.hpp"
 
 namespace ImpyD {
-    class VolumeControl : public PanelBase
+    class VolumeControl : public PanelBase, PanelFactory::RegisterPanel<VolumeControl>
     {
     private:
         int editingValue = -1;
         int currentValue = 0;
-
         void SetState(mpd_status *status);
-    public:
-        const char * GetTitle() override;
 
-        void Draw(MpdClientWrapper *client) override;
+    public:
+        IMPYD_REGISTER_PANEL_FactoryFunc(VolumeControl)
+        IMPYD_REGISTER_PANEL_GetFactoryName("Volume Control Slider")
+
+        VolumeControl(int panelId)
+            : PanelBase(panelId) {}
+
+        void DrawContents(MpdClientWrapper &client) override;
 
         ~VolumeControl() override;
 
-        void OnIdleEvent(MpdClientWrapper *client, MpdIdleEventData *data) override;
+        void OnIdleEvent(MpdClientWrapper &client, MpdIdleEventData &data) override;
 
-        void InitState(MpdClientWrapper *client) override;
+        void InitState(MpdClientWrapper &client) override;
+
+        const std::string PanelName() override;
     };
 } // ImMPD
 
