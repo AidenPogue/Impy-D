@@ -58,7 +58,9 @@ namespace ImpyD
         ImGui::SameLine();
         if (ImGui::Button("Randomize"))
         {
-
+            client.BeginNoIdle();
+            client.RandomizeQueue();
+            client.EndNoIdle();
         }
 
         ImGuiListClipper clipper;

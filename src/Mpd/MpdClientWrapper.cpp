@@ -154,6 +154,14 @@ bool MpdClientWrapper::ClearQueue()
     return mpd_run_clear(connection);
 }
 
+bool MpdClientWrapper::RandomizeQueue()
+{
+    ThrowIfNotConnected();
+    ClearCache();
+    return mpd_run_shuffle(connection);
+    mpd_search_c
+}
+
 bool MpdClientWrapper::PlayCurrent()
 {
     ThrowIfNotConnected();
