@@ -4,4 +4,5 @@ target_sources(im-mpd
         PUBLIC
         MpdClientWrapper.cpp
         MpdSongWrapper.cpp
+        ArbitraryTagged.cpp
 )
