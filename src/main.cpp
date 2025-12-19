@@ -144,6 +144,20 @@ int main(int, char**)
     MpdClientWrapper client = MpdClientWrapper(nullptr, 0);
     auto mainWindow = ImpyD::MainWindow();
 
+    client.BeginNoIdle();
+    auto groups = std::make_unique<std::vector<mpd_tag_type>>();
+    //groups->push_back(MPD_TAG_ALBUM_ARTIST);
+    groups->push_back(MPD_TAG_ALBUM);
+    groups->push_back(MPD_TAG_DATE);
+    auto filters = std::make_unique<std::vector<std::string>>();
+    filters->push_back("(albumartist == 'Metallica')");
+    auto list = client.List(MPD_TAG_DISC, filters, groups);
+    for (const auto &item : list)
+    {
+        std::cout << item->GetSingleValue(MPD_TAG_ALBUM) << " " << item->GetSingleValue(MPD_TAG_DATE) << " " << item->GetSingleValue(MPD_TAG_DISC) << std::endl;
+    }
+    client.EndNoIdle();
+
     while (!glfwWindowShouldClose(window))
     {
         // Poll and handle events (inputs, window resize, etc.)
