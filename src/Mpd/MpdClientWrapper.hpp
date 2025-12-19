@@ -9,6 +9,7 @@
 
 #include "MpdClientCache.hpp"
 #include "MpdIdleEventData.hpp"
+#include "../TitleFormatting/ITagged.hpp"
 
 class MpdClientWrapper
 {
@@ -90,6 +91,12 @@ public:
     bool SetVolume(int volume);
     bool ChangeVolume(int by);
 
+    //Database
+    std::vector<std::unique_ptr<ImpyD::TitleFormatting::ITagged>> List(mpd_tag_type mainTag,
+                                                                       const std::unique_ptr<std::vector<std::string> >
+                                                                       &filters = nullptr,
+                                                                       const std::unique_ptr<std::vector<mpd_tag_type> >
+                                                                       &groups = nullptr);
 
     void Poll();
 };

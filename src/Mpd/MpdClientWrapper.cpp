@@ -3,10 +3,13 @@
 
 #include <assert.h>
 #include <iostream>
+#include <map>
 #include <optional>
 #include <poll.h>
+#include <stack>
 #include <mpd/status.h>
 
+#include "ArbitraryTagged.hpp"
 #include "MpdSongWrapper.hpp"
 
 static uint8_t *binaryChunkBuffer;
@@ -159,7 +162,6 @@ bool MpdClientWrapper::RandomizeQueue()
     ThrowIfNotConnected();
     ClearCache();
     return mpd_run_shuffle(connection);
-    mpd_search_c
 }
 
 bool MpdClientWrapper::PlayCurrent()
@@ -245,6 +247,95 @@ bool MpdClientWrapper::ChangeVolume(int by)
     ThrowIfNotConnected();
     ClearCache();
     return mpd_run_change_volume(connection, by);
+}
+
+std::vector<std::unique_ptr<ImpyD::TitleFormatting::ITagged>> MpdClientWrapper::List(mpd_tag_type mainTag,
+    const std::unique_ptr<std::vector<std::string> > &filters,
+    const std::unique_ptr<std::vector<mpd_tag_type> > &groups)
+{
+
+
+    ThrowIfNotConnected();
+    mpd_search_cancel(connection);
+    mpd_search_db_tags(connection, mainTag);
+
+    if (filters)
+    {
+        for (auto &expression : *filters)
+        {
+            mpd_search_add_expression(connection, expression.c_str());
+        }
+    }
+
+    int groupLen = 0;
+    if (groups)
+    {
+        groupLen = groups->size();
+        for (int i = groupLen - 1; i >= 0; i--)
+        {
+            const auto &group = groups->at(i);
+            mpd_search_add_group_tag(connection, group);
+        }
+
+    }
+
+    mpd_search_commit(connection);
+
+    std::vector<std::unique_ptr<ImpyD::TitleFormatting::ITagged>> list;
+
+    //TODO: explain what this is for
+    std::vector<std::pair<mpd_tag_type, std::string>> tagStack;
+    std::vector<mpd_tag_type> tagTypes;
+
+    //Tags will appear in reverse order of groups with the main tag being last, so we reverse it here.
+    ///*
+    for (int i = 0; i < groupLen; i++)
+    {
+        tagTypes.emplace_back(groups->at(i));
+    }
+    //*/
+
+    tagTypes.emplace_back(mainTag);
+
+    auto pair = mpd_recv_pair(connection);
+    while (pair != nullptr)
+    {
+        auto currentType = mpd_tag_name_iparse(pair->name);
+
+        if (tagTypes[tagStack.size()] == currentType)
+        {
+            tagStack.emplace_back(std::pair(currentType, pair->value));
+        }
+        else
+        {
+            while (tagStack.back().first != currentType)
+            {
+                tagStack.pop_back();
+            }
+            tagStack.pop_back();
+            tagStack.emplace_back(std::pair(currentType, pair->value));
+        }
+
+        if (currentType == tagTypes.back())
+        {
+            const auto item = new ImpyD::Mpd::ArbitraryTagged();
+
+            for (const auto &[fst, snd] : tagStack)
+            {
+                item->AddValue(fst, snd);
+            }
+
+            tagStack.pop_back();
+            list.push_back(std::unique_ptr<ImpyD::TitleFormatting::ITagged>(item));
+        }
+
+        mpd_return_pair(connection, pair);
+        pair = mpd_recv_pair(connection);
+    }
+
+    //mpd_response_finish(connection);
+
+    return list;
 }
 
 const MpdClientWrapper::MpdStatusPtr &MpdClientWrapper::GetStatus()
