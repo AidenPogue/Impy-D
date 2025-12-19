@@ -9,4 +9,5 @@ target_sources(im-mpd
         QueueView.cpp
         SongTableColumn.cpp
         Container.cpp
+        MediaLibraryTree.cpp
 )
