@@ -5,4 +5,6 @@ target_sources(im-mpd
         MpdClientWrapper.cpp
         MpdSongWrapper.cpp
         ArbitraryTagged.cpp
+        IFilterGenerator.cpp
+        TagFilterGenerator.cpp
 )
