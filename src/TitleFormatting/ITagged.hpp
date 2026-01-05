@@ -6,6 +6,7 @@
 #define IM_MPD_ITAGGED_HPP
 #include <memory>
 #include <vector>
+#include <mpd/tag.h>
 
 namespace ImpyD::TitleFormatting
 {
@@ -17,8 +18,12 @@ namespace ImpyD::TitleFormatting
     public:
         virtual ~ITagged() = default;
 
-        virtual const std::string &GetSingleValue(mpd_tag_type key) const = 0;
-        virtual const std::vector<std::string> &GetAllValues(mpd_tag_type key) const = 0;
+        [[nodiscard]] virtual std::string GetSingleValue(mpd_tag_type key) const = 0;
+        [[nodiscard]] virtual std::vector<std::string> GetAllValues(mpd_tag_type key) const = 0;
+
+        [[nodiscard]] virtual unsigned GetId() const;
+        [[nodiscard]] virtual unsigned GetDurationMs() const;
+        [[nodiscard]] virtual std::string GetUri() const;
     };
 }
 
