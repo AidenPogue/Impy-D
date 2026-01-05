@@ -21,8 +21,7 @@ namespace ImpyD
 
     void QueueView::UpdateQueue(MpdClientWrapper &client)
     {
-        Utils::FreeSongList(currentQueue);
-        client.GetQueue(currentQueue);
+        currentQueue = client.GetQueue();
         cellValueCache.resize(currentQueue.size());
         for (auto &row : cellValueCache)
         {
@@ -30,8 +29,8 @@ namespace ImpyD
         }
     }
 
-    void QueueView::CacheRowIfNeeded(mpd_song *song, const std::vector<SongTableColumn> &columns,
-        std::vector<std::string> &rowCache)
+    void QueueView::CacheRowIfNeeded(MpdSongWrapper &song, const std::vector<SongTableColumn> &columns,
+                                     std::vector<std::string> &rowCache)
     {
         if (rowCache.size() == columns.size())
         {
@@ -42,7 +41,7 @@ namespace ImpyD
 
         for (const auto &column : columns)
         {
-            rowCache.push_back(TitleFormatting::FormatSong(song, column.format));
+            rowCache.push_back(TitleFormatting::FormatITagged(song, column.format));
         }
     }
 
@@ -80,7 +79,7 @@ namespace ImpyD
                 for (int i = clipper.DisplayStart; i < clipper.DisplayEnd; i++)
                 {
                     auto song = currentQueue[i];
-                    auto songId = mpd_song_get_id(song);
+                    auto songId = song.GetId();
                     auto isCurrentSong = songId == currentSongId;
                     if (isCurrentSong)
                     {
