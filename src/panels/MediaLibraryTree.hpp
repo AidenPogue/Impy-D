@@ -15,7 +15,7 @@ namespace ImpyD
             std::string content;
             std::unique_ptr<TreeItem> parent;
             std::unique_ptr<std::vector<TreeItem>> children;
-            const LibraryLayer &layer;
+            const int layerIndex;
         };
 
         std::vector<TreeItem> rootItems;
@@ -26,10 +26,7 @@ namespace ImpyD
         IMPYD_REGISTER_PANEL_FactoryFunc(MediaLibraryTree);
         IMPYD_REGISTER_PANEL_GetFactoryName("Media Library Tree");
 
-        explicit MediaLibraryTree(int panelId)
-            : PanelBase(panelId)
-        {
-        }
+        explicit MediaLibraryTree(int panelId);
 
         std::string PanelName() override;
 

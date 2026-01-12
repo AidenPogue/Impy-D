@@ -4,6 +4,16 @@
 #include "../TitleFormatting/TitleFormatter.hpp"
 
 namespace ImpyD {
+    //Testing layers!
+
+    static std::vector<LibraryLayer> testLayers =
+    {
+        LibraryLayer("%albumartist%", ""),
+        LibraryLayer("%album% (%date%)", "%date% %album%")
+    };
+
+    static auto testBaseLayer = LibraryLayer("%disc%.%track% - %title%", "");
+
     void MediaLibraryTree::FetchChildren(MpdClientWrapper &client, TreeItem &item)
     {
         if (!item.children)
@@ -11,26 +21,32 @@ namespace ImpyD {
             item.children = std::make_unique<std::vector<TreeItem>>();
         }
         item.children->clear();
-        //Testing layers!
 
-        // std::vector<LibraryLayer> layers =
-        //     {
-        //     LibraryLayer("%albumartist%", ""),
-        //     LibraryLayer("%album% (%date%)", "%date% %album%"),
-        //     LibraryLayer("%disc%.%track% - %title%", ""),
-        // };
-
-        auto rootTags = TitleFormatting::GetUsedTags(layers.front().displayFormat);
-        auto rootTagsVec = std::vector<mpd_tag_type>(rootTags.begin(), rootTags.end());
+        auto isBaseLayer = item.layerIndex == testLayers.size();
+        auto &layer = isBaseLayer ? testBaseLayer : testLayers[item.layerIndex + 1];
 
         client.BeginNoIdle();
-        auto rootList = client.List(&rootTagsVec);
+
+        if (isBaseLayer)
+        {
+
+        }
+        else
+        {
+            item.children->push_back(client.List())
+        }
+
         client.EndNoIdle();
 
         for (const auto &item : rootList)
         {
             item.push_back(TreeItem(TitleFormatting::FormatITagged(*item, layers.front().displayFormat), nullptr, nullptr));
         }
+    }
+
+    MediaLibraryTree::MediaLibraryTree(int panelId): PanelBase(panelId)
+    {
+        rootItems.push_back(TreeItem("Music Library", nullptr, nullptr, -1));
     }
 
     std::string MediaLibraryTree::PanelName()
