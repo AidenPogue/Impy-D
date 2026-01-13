@@ -9,10 +9,18 @@ namespace ImpyD {
     static std::vector<LibraryLayer> testLayers =
     {
         LibraryLayer("%albumartist%", ""),
-        LibraryLayer("%album% (%date%)", "%date% %album%")
+        LibraryLayer("%album% (%date%)", "%date% %album%"),
+        // LibraryLayer("%disc%.%track% - %title%", "")
     };
 
-    static auto testBaseLayer = LibraryLayer("%disc%.%track% - %title%", "");
+    MediaLibraryTree::TreeItem::TreeItem(TreeItem *parent, std::unique_ptr<TitleFormatting::ITagged> taggedItem,
+                                         const int layerIndex, const std::vector<LibraryLayer> &layers) : layerIndex(layerIndex)
+    {
+        this->parent = parent;
+        this->taggedItem = std::move(taggedItem);
+
+        this->content = TitleFormatting::FormatITagged(*taggedItem, layers[layerIndex].displayFormat);
+    }
 
     void MediaLibraryTree::FetchChildren(MpdClientWrapper &client, TreeItem &item)
     {
@@ -22,31 +30,31 @@ namespace ImpyD {
         }
         item.children->clear();
 
-        auto isBaseLayer = item.layerIndex == testLayers.size();
-        auto &layer = isBaseLayer ? testBaseLayer : testLayers[item.layerIndex + 1];
+        assert(item.layerIndex <= testLayers.size() - 1);
+
+        auto &childLayer = testLayers[item.layerIndex + 1];
+        auto isBaseLayer = item.layerIndex == testLayers.size() - 1;
 
         client.BeginNoIdle();
 
-        if (isBaseLayer)
-        {
+        //TESTING!
+        auto allTags = TitleFormatting::GetUsedTags(childLayer.displayFormat);
+        auto tagVec = std::vector<mpd_tag_type>(allTags.begin(), allTags.end());
 
-        }
-        else
-        {
-            item.children->push_back(client.List())
-        }
+        auto listing = client.List(&tagVec);
+
 
         client.EndNoIdle();
 
-        for (const auto &item : rootList)
+        for (auto & listItem : listing)
         {
-            item.push_back(TreeItem(TitleFormatting::FormatITagged(*item, layers.front().displayFormat), nullptr, nullptr));
+            item.children->emplace_back(TreeItem(&item, std::move(listItem), item.layerIndex + 1, testLayers));
         }
     }
 
     MediaLibraryTree::MediaLibraryTree(int panelId): PanelBase(panelId)
     {
-        rootItems.push_back(TreeItem("Music Library", nullptr, nullptr, -1));
+        rootItems.emplace_back(nullptr, nullptr, -1, testLayers);
     }
 
     std::string MediaLibraryTree::PanelName()
@@ -74,12 +82,12 @@ namespace ImpyD {
     {
         if (event & MPD_IDLE_DATABASE)
         {
-            FetchChildren(client, TODO);
+            FetchChildren(client, rootItems[0]);
         }
     }
 
     void MediaLibraryTree::InitState(MpdClientWrapper &client)
     {
-        FetchChildren(client, TODO);
+        FetchChildren(client, rootItems[0]);
     }
 } // ImMPD

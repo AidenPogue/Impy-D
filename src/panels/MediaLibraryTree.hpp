@@ -12,10 +12,15 @@ namespace ImpyD
         class TreeItem
         {
         public:
+            TreeItem(TreeItem *parent, std::unique_ptr<TitleFormatting::ITagged> taggedItem, int layerIndex, const std::vector<LibraryLayer> &layers);
+
             std::string content;
-            std::unique_ptr<TreeItem> parent;
+            TreeItem *parent;
             std::unique_ptr<std::vector<TreeItem>> children;
+            std::unique_ptr<TitleFormatting::ITagged> taggedItem;
             const int layerIndex;
+
+
         };
 
         std::vector<TreeItem> rootItems;
