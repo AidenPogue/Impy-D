@@ -9,7 +9,7 @@
 
 namespace ImpyD::TitleFormatting
 {
-    static const std::regex tagRegex = std::regex("%([a-zA-z]+)%", std::regex_constants::optimize | std::regex_constants::ECMAScript);
+    static const auto tagRegex = std::regex("%([a-zA-z]+)%", std::regex_constants::optimize | std::regex_constants::ECMAScript);
     static std::vector<std::string> artistTagListArgs = {"artist", ", "};
 
     static std::string GetTagValue(const ITagged & tagged, const std::string &tag)
@@ -50,7 +50,7 @@ namespace ImpyD::TitleFormatting
             curOffset += tagValue.length() - match.length();
         }
 
-        return std::move(outStr);
+        return outStr;
     }
 
     static std::string GetErrorString(const std::string &message)
@@ -84,7 +84,7 @@ namespace ImpyD::TitleFormatting
             tags.insert(mpd_tag_name_iparse(it->str(1).c_str()));
         }
 
-        return std::move(tags);
+        return tags;
     }
 }
 
