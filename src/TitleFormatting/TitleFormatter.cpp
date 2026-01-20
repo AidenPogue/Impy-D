@@ -5,6 +5,7 @@
 
 #include "BuiltinFormatFunctions.hpp"
 #include "ITagged.hpp"
+#include "../Utils.hpp"
 
 
 namespace ImpyD::TitleFormatting
@@ -16,7 +17,7 @@ namespace ImpyD::TitleFormatting
     {
         if (tag == "duration")
         {
-
+            return Utils::SecondsToDurationString(static_cast<float>(tagged.GetDurationMs()) / 1000);
         }
 
         auto tagType = mpd_tag_name_iparse(tag.c_str());
