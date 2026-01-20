@@ -78,3 +78,24 @@ std::string ImpyD::Utils::SecondsToDurationString(float seconds)
     auto hours = minutes / 60;
     return std::format("{}{:02}:{:02}", hours > 0 ? std::format("{:02}:", hours) : "", minutes % 60, sec % 60);
 }
+
+void ImpyD::Utils::TagSetAppend(std::vector<mpd_tag_type> &vec, mpd_tag_type newTag)
+{
+    for (const auto &tag : vec)
+    {
+        if (tag == newTag)
+        {
+            return;
+        }
+    }
+
+    vec.emplace_back(newTag);
+}
+
+void ImpyD::Utils::TagSetUnion(std::vector<mpd_tag_type> &mainSet, std::vector<mpd_tag_type> &toUnion)
+{
+    for (const auto &toAdd : toUnion)
+    {
+        TagSetAppend(mainSet, toAdd);
+    }
+}
