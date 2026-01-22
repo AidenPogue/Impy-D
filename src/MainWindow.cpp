@@ -35,6 +35,25 @@ namespace ImpyD
         }
     }
 
+    void MainWindow::DrawFileMenu()
+    {
+        if (ImGui::BeginMainMenuBar())
+        {
+            if (ImGui::BeginMenu("File"))
+            {
+                if (ImGui::MenuItem("Exit"))
+                {
+                    //TODO: Centralized exit function that does cleanup/saves configs etc.
+                    exit(0);
+                }
+
+                ImGui::EndMenu();
+            }
+
+            ImGui::EndMainMenuBar();
+        }
+    }
+
     void MainWindow::CreatePanelById(MpdClientWrapper &client, const std::string &id)
     {
         auto panel = PanelFactory::Registry::CreatePanelById(id, nextPanelId++);
@@ -71,6 +90,7 @@ namespace ImpyD
 
         panels.remove_if(removeClosedPanelPredicate);
 
+        DrawFileMenu();
         DrawLayoutMenu();
 
         for (const auto &panel : panels)

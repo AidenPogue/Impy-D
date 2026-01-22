@@ -18,6 +18,7 @@ namespace ImpyD
         std::vector<std::string> panelsToCreate;
 
         void DrawLayoutMenu();
+        void DrawFileMenu();
 
         void CreatePanelById(MpdClientWrapper &client, const std::string &id);
 
