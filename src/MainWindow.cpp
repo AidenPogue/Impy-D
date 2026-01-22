@@ -1,5 +1,6 @@
 #include "MainWindow.hpp"
 
+#include "imgui_internal.h"
 #include "PanelFactory/PanelRegistry.hpp"
 
 namespace ImpyD
@@ -96,6 +97,20 @@ namespace ImpyD
 
         DrawFileMenu();
         DrawLayoutMenu();
+
+        if (!client.GetIsConnected())
+        {
+            ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(2, 2));
+            if (ImGui::BeginViewportSideBar("SatusBar", ImGui::GetWindowViewport(), ImGuiDir_Down, 24,  ImGuiWindowFlags_NoScrollWithMouse | ImGuiWindowFlags_NoScrollbar))
+            {
+                ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(1.0f, 0.0f, 0.0f, 1.0f));
+                ImGui::Text("Could not connect to MPD!");
+                ImGui::PopStyleColor();
+                ImGui::End();
+            }
+            ImGui::PopStyleVar();
+
+        }
 
         for (const auto &panel : panels)
         {
