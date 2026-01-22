@@ -21,7 +21,7 @@ namespace ImpyD::TitleFormatting
      * @param format Format string to collect tags from.
      * @return A set containing all the mpd tags found in the format string
      */
-    std::set<mpd_tag_type> GetUsedTags(const std::string &format);
+    std::vector<mpd_tag_type> GetUsedTags(const std::string &format);
 }
 
 #endif //IM_MPD_TITLEFORMATTER_HPP
