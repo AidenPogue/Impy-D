@@ -10,7 +10,8 @@ MpdSongWrapper::MpdSongWrapper(mpd_song *song) : song(std::shared_ptr<mpd_song>(
 
 std::string MpdSongWrapper::GetSingleValue(mpd_tag_type key) const
 {
-    return mpd_song_get_tag(song.get(), key, 0);
+    auto val = mpd_song_get_tag(song.get(), key, 0);
+    return val ? std::string(val) : std::string();
 }
 
 std::vector<std::string> MpdSongWrapper::GetAllValues(mpd_tag_type key) const
