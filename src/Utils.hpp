@@ -2,12 +2,14 @@
 #define IM_MPD_UTILS_H
 #include <string>
 
+#include <GL/gl.h>
 #include "Mpd/MpdClientWrapper.hpp"
-#include "backends/imgui_impl_opengl3_loader.h"
 
 namespace ImpyD::Utils
 {
     bool LoadTextureFromMemory(const void* data, size_t data_size, GLuint* out_texture, int* out_width, int* out_height);
+
+
     std::string SecondsToDurationString(float seconds);
     /**
      * Appends @p newTag to @p vec if @p vec does not contain it, otherwise does nothing.
