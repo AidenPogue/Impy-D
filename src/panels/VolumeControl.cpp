@@ -24,7 +24,8 @@ namespace ImpyD {
 
         const auto oldValue = currentValue;
 
-        const auto sliderEdited = ImGui::SliderInt("Vol", &currentValue, 0, 100, "%d%%");
+        ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
+        const auto sliderEdited = ImGui::SliderInt("##", &currentValue, 0, 100, "%d%%");
         const auto mouseWheel = ImGui::GetIO().MouseWheel;
         if (!sliderEdited && ImGui::IsItemHovered() && mouseWheel != 0)
         {
