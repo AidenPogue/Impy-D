@@ -1,5 +1,7 @@
 #ifndef IM_MPD_MEDIALIBRARYTREE_H
 #define IM_MPD_MEDIALIBRARYTREE_H
+#include <set>
+
 #include "LibraryLayer.hpp"
 #include "PanelBase.hpp"
 #include "../PanelFactory/RegisterPanel.hpp"
@@ -20,6 +22,8 @@ namespace ImpyD
             std::unique_ptr<TitleFormatting::ITagged> taggedItem;
             const int layerIndex;
 
+            std::vector<std::unique_ptr<Mpd::IFilterGenerator>> GetAllFilters();
+
 
         };
 
@@ -37,6 +41,11 @@ namespace ImpyD
 
     protected:
         void DrawContents(MpdClientWrapper &client) override;
+
+        static void DrawTreeItemContextMenu(MpdClientWrapper &client,
+                                            TreeItem &childItem);
+
+        void DrawChildren(MpdClientWrapper &client, TreeItem &item);
 
     public:
         void OnIdleEvent(MpdClientWrapper &client, mpd_idle event) override;
