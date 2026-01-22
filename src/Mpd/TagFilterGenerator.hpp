@@ -5,6 +5,7 @@
 #ifndef IM_MPD_TAGFILTERGENERATOR_HPP
 #define IM_MPD_TAGFILTERGENERATOR_HPP
 #include <string>
+#include <utility>
 
 #include "IFilterGenerator.hpp"
 
@@ -21,9 +22,11 @@ namespace ImpyD::Mpd
             EndsWith,
         };
 
-        TagFilterGenerator(const mpd_tag_type tag, const std::string value)
-            : tag(tag),
-              value(value)
+        TagFilterGenerator(mpd_tag_type tag, std::string value): tag(tag), value(std::move(value))
+        {
+        }
+
+        TagFilterGenerator(const std::pair<mpd_tag_type, std::string> &pair) : TagFilterGenerator(pair.first, pair.second)
         {
         }
 
