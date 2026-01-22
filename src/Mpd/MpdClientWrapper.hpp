@@ -7,6 +7,7 @@
 #include <mpd/client.h>
 #include <mpd/async.h>
 
+#include "ArbitraryTagged.hpp"
 #include "MpdClientCache.hpp"
 #include "MpdIdleEventData.hpp"
 #include "MpdSongWrapper.hpp"
@@ -96,7 +97,7 @@ public:
     bool ChangeVolume(int by);
 
     //Database
-    [[nodiscard]] std::vector<std::unique_ptr<ImpyD::TitleFormatting::ITagged>> List(
+    [[nodiscard]] std::vector<ImpyD::Mpd::ArbitraryTagged> List(
         const std::vector<mpd_tag_type> *groups,
         const std::vector<std::unique_ptr<ImpyD::Mpd::IFilterGenerator>> *filters = nullptr);
 

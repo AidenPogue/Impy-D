@@ -245,7 +245,7 @@ bool MpdClientWrapper::ChangeVolume(int by)
     return mpd_run_change_volume(connection, by);
 }
 
-std::vector<std::unique_ptr<ImpyD::TitleFormatting::ITagged>> MpdClientWrapper::List(
+std::vector<ImpyD::Mpd::ArbitraryTagged> MpdClientWrapper::List(
     const std::vector<mpd_tag_type> *groups,
     const std::vector<std::unique_ptr<ImpyD::Mpd::IFilterGenerator>> *filters)
 {
@@ -271,7 +271,7 @@ std::vector<std::unique_ptr<ImpyD::TitleFormatting::ITagged>> MpdClientWrapper::
 
     mpd_search_commit(connection);
 
-    std::vector<std::unique_ptr<ImpyD::TitleFormatting::ITagged>> list;
+    std::vector<ImpyD::Mpd::ArbitraryTagged> list;
 
     //TODO: explain what this is for
     std::vector<std::pair<mpd_tag_type, std::string>> tagStack;
@@ -297,15 +297,15 @@ std::vector<std::unique_ptr<ImpyD::TitleFormatting::ITagged>> MpdClientWrapper::
 
         if (currentType == groups->back())
         {
-            const auto item = new ImpyD::Mpd::ArbitraryTagged();
+            auto item = ImpyD::Mpd::ArbitraryTagged();
 
             for (const auto &[fst, snd] : tagStack)
             {
-                item->AddValue(fst, snd);
+                item.AddValue(fst, snd);
             }
 
             tagStack.pop_back();
-            list.push_back(std::unique_ptr<ImpyD::TitleFormatting::ITagged>(item));
+            list.push_back(item);
         }
 
         mpd_return_pair(connection, pair);
