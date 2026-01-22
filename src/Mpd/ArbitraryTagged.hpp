@@ -23,7 +23,7 @@ namespace ImpyD::Mpd
 
         std::vector<std::string> GetAllValues(mpd_tag_type key) const override;
 
-        std::vector<TagFilterGenerator> GetFilters() const;
+        std::vector<std::unique_ptr<IFilterGenerator>> GetFilters() const override;
     };
 }
 

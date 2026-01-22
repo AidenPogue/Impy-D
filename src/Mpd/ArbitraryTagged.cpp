@@ -30,9 +30,9 @@ std::vector<std::string> ImpyD::Mpd::ArbitraryTagged::GetAllValues(mpd_tag_type 
     return map.at(key);
 }
 
-std::vector<ImpyD::Mpd::TagFilterGenerator> ImpyD::Mpd::ArbitraryTagged::GetFilters() const
+std::vector<std::unique_ptr<ImpyD::Mpd::IFilterGenerator>> ImpyD::Mpd::ArbitraryTagged::GetFilters() const
 {
-    std::vector<TagFilterGenerator> result;
+    std::vector<std::unique_ptr<IFilterGenerator>> result;
 
     //We'll have at least one filter per tag type, and most tags will only have one value.
     result.reserve(map.size());
@@ -41,7 +41,7 @@ std::vector<ImpyD::Mpd::TagFilterGenerator> ImpyD::Mpd::ArbitraryTagged::GetFilt
     {
         for (const auto &value : pair.second)
         {
-            result.emplace_back(pair.first, value);
+            result.emplace_back(std::make_unique<TagFilterGenerator>(pair.first, value));
         }
     }
 
