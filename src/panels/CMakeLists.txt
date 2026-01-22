@@ -10,4 +10,7 @@ target_sources(im-mpd
         SongTableColumn.cpp
         Container.cpp
         MediaLibraryTree.cpp
+        ImGuiStyleEditor.cpp
+        LibraryLayer.cpp
+        SimpleAlbumArt.cpp
 )

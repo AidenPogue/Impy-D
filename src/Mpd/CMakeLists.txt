@@ -7,4 +7,6 @@ target_sources(im-mpd
         ArbitraryTagged.cpp
         IFilterGenerator.cpp
         TagFilterGenerator.cpp
+        UriFilterGenerator.cpp
+        AlbumArtHelper.cpp
 )
