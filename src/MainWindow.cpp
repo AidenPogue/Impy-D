@@ -8,7 +8,11 @@ namespace ImpyD
 
     MainWindow::MainWindow()
     {
-
+        //TESTING! Create all panels.
+        for (const auto& pair : PanelFactory::Registry::GetRegisteredPanels())
+        {
+            panelsToCreate.push_back(pair.first);
+        }
     }
 
     void MainWindow::DrawLayoutMenu()
