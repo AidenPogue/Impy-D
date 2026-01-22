@@ -8,6 +8,8 @@
 #include <vector>
 #include <mpd/tag.h>
 
+#include "../Mpd/IFilterGenerator.hpp"
+
 namespace ImpyD::TitleFormatting
 {
     /**
@@ -20,6 +22,11 @@ namespace ImpyD::TitleFormatting
 
         [[nodiscard]] virtual std::string GetSingleValue(mpd_tag_type key) const = 0;
         [[nodiscard]] virtual std::vector<std::string> GetAllValues(mpd_tag_type key) const = 0;
+        /**
+         * Gets a list of filters to match each tag value, or the URI if this is a song.
+         * @return
+         */
+        [[nodiscard]] virtual std::vector<std::unique_ptr<Mpd::IFilterGenerator>> GetFilters() const = 0;
 
         [[nodiscard]] virtual unsigned GetId() const;
         [[nodiscard]] virtual unsigned GetDurationMs() const;
