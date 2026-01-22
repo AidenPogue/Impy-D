@@ -9,20 +9,6 @@
 #include "imgui.h"
 #include "stb_image.h"
 
-void ImpyD::Utils::FreeSongList(std::vector<mpd_song *> &songList)
-{
-    for (auto *song : songList)
-    {
-        if (song == nullptr)
-        {
-            continue;
-        }
-        mpd_song_free(song);
-    }
-    songList.clear();
-}
-
-
 // From https://github.com/ocornut/imgui/wiki/Image-Loading-and-Displaying-Examples#example-for-opengl-users
 // Simple helper function to load an image into a OpenGL texture with common settings
 bool ImpyD::Utils::LoadTextureFromMemory(const void* data, size_t data_size, GLuint* out_texture, int* out_width, int* out_height)
@@ -53,21 +39,6 @@ bool ImpyD::Utils::LoadTextureFromMemory(const void* data, size_t data_size, GLu
     *out_height = image_height;
 
     return true;
-}
-
-void *ImpyD::Utils::CreateOrResizeBinaryBuffer(void *buffer, size_t &currentSize, size_t newSize)
-{
-    if (buffer == nullptr)
-    {
-        buffer = IM_ALLOC(newSize);
-    }
-    else if (currentSize < newSize)
-    {
-        buffer = realloc(buffer, newSize);
-    }
-    assert(buffer != nullptr);
-    currentSize = newSize;
-    return buffer;
 }
 
 std::string ImpyD::Utils::SecondsToDurationString(float seconds)

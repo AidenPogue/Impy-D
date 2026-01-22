@@ -7,9 +7,7 @@
 
 namespace ImpyD::Utils
 {
-    void FreeSongList(std::vector<mpd_song *> &songList);
     bool LoadTextureFromMemory(const void* data, size_t data_size, GLuint* out_texture, int* out_width, int* out_height);
-    void *CreateOrResizeBinaryBuffer(void *buffer, size_t &currentSize, size_t newSize);
     std::string SecondsToDurationString(float seconds);
     /**
      * Appends @p newTag to @p vec if @p vec does not contain it, otherwise does nothing.
