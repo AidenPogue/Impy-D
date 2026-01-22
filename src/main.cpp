@@ -133,13 +133,7 @@ int main(int, char**)
     bool show_demo_window = true;
     ImVec4 clear_color = ImVec4(0.45f, 0.55f, 0.60f, 1.00f);
 
-    //Register built in panels.
-    //This is mad ugly brah
-    // ImpyD::PanelRegistry::RegisterPanel("impy-d_container", [](int id) {return std::make_unique<ImpyD::Container>(id);});
-    // ImpyD::PanelRegistry::RegisterPanel("impy-d_seekbar", [](int id) {return std::make_unique<ImpyD::SeekBar>(id);});
-    // ImpyD::PanelRegistry::RegisterPanel("impy-d_volumecontrol", [](int id) {return std::make_unique<ImpyD::VolumeControl>(id);});
-    // ImpyD::PanelRegistry::RegisterPanel("impy-d_playbackbuttons", [](int id) {return std::make_unique<ImpyD::PlaybackButtonsPanel>(id);});
-    // ImpyD::PanelRegistry::RegisterPanel("impy-d_queueview", [](int id) {return std::make_unique<ImpyD::QueueView>(id);});
+    ImGui::PushStyleVar(ImGuiStyleVar_FrameRounding, 2);
 
     MpdClientWrapper client = MpdClientWrapper(nullptr, 0);
     auto mainWindow = ImpyD::MainWindow();
@@ -169,11 +163,14 @@ int main(int, char**)
         if (show_demo_window)
             ImGui::ShowDemoWindow(&show_demo_window);
 
-        client.Poll();
-
-        if (client.HasIdleEvent())
+        if (client.GetIsConnected())
         {
-            mainWindow.SendIdleEventToPanels(client, client.GetIdleEventsAndClear());
+            client.Poll();
+
+            if (client.HasIdleEvent())
+            {
+                mainWindow.SendIdleEventToPanels(client, client.GetIdleEventsAndClear());
+            }
         }
 
         mainWindow.Draw(client);
