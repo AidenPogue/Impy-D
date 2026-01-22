@@ -11,6 +11,7 @@ namespace ImMPD
     private:
         GLuint currentArtTexture = 0;
         float currentArtAspect = 1;
+        std::string currentSongUri;
         bool preserveAspectRatio = true;
         uint8_t *receiveBuffer = NULL;
 

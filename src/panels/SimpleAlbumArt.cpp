@@ -6,6 +6,11 @@
 
 void ImMPD::SimpleAlbumArt::SetArtwork(MpdClientWrapper &client, const std::string &uri)
 {
+    if (currentSongUri == uri)
+    {
+        return;
+    }
+
     if (currentArtTexture)
     {
         glDeleteTextures(1, &currentArtTexture);
@@ -16,6 +21,7 @@ void ImMPD::SimpleAlbumArt::SetArtwork(MpdClientWrapper &client, const std::stri
     currentArtTexture = ImpyD::Mpd::AlbumArtHelper::LoadArtworkToGPU(client, uri, dimensions, false);
     //client.EndNoIdle();
     currentArtAspect = dimensions.x / dimensions.y;
+    currentSongUri = uri;
 }
 
 std::string ImMPD::SimpleAlbumArt::PanelName()
