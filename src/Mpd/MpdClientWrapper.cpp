@@ -2,6 +2,7 @@
 #include "MpdIdleEventData.hpp"
 
 #include <assert.h>
+#include <fstream>
 #include <iostream>
 #include <map>
 #include <optional>
@@ -57,7 +58,8 @@ int MpdClientWrapper::Connect()
         {
             std::cerr << "Connection error: " << mpd_connection_get_error_message(connection) << std::endl;
             mpd_connection_free(connection);
-            return mpd_connection_get_error(connection);
+            connection = nullptr;
+            return 1;
         }
         mpd_send_idle(connection);
         return 0;
@@ -89,9 +91,9 @@ bool MpdClientWrapper::ReceiveIdle()
 bool MpdClientWrapper::GetIsConnected() const
 {
     bool null = connection == nullptr;
-    if (!null && mpd_connection_get_error(connection) != MPD_ERROR_SUCCESS)
+    if (null || mpd_connection_get_error(connection) != MPD_ERROR_SUCCESS)
     {
-        std::cout << "Connection error: " << mpd_connection_get_error_message(connection) << std::endl;
+        //std::cout << "Connection error: " << mpd_connection_get_error_message(connection) << std::endl;
         return false;
     }
 
