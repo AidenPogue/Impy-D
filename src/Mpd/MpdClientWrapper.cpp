@@ -361,6 +361,47 @@ void MpdClientWrapper::FindAddQueue(const std::vector<std::unique_ptr<ImpyD::Mpd
     mpd_search_commit(connection);
     mpd_response_finish(connection);
 }
+
+std::vector<char> MpdClientWrapper::LoadAlbumArtSync(const std::string &uri) const
+{
+    return LoadAlbumArtSyncImpl(uri, &mpd_send_albumart);
+}
+
+std::vector<char> MpdClientWrapper::ReadPictureSync(const std::string &uri) const
+{
+    return LoadAlbumArtSyncImpl(uri, &mpd_send_readpicture);
+}
+
+std::vector<char> MpdClientWrapper::LoadAlbumArtSyncImpl(const std::string &uri, bool (*sendFunction) (mpd_connection *, const char *, unsigned)) const
+{
+    sendFunction(connection, uri.c_str(), 0);
+    if (mpd_connection_get_error(connection) != MPD_ERROR_SUCCESS)
+    {
+        mpd_connection_clear_error(connection);
+        return {};
+    }
+    auto sizePair = mpd_recv_pair(connection);
+    auto buffer = std::vector<char>();
+    buffer.reserve(std::stoi(sizePair->value));
+    mpd_return_pair(connection, sizePair);
+
+    int read = 0;
+    int position = 0;
+
+    do
+    {
+        read = mpd_recv_albumart(connection, buffer.data() + position, buffer.capacity());
+        mpd_response_finish(connection);
+        position += read;
+        if (read > 0)
+        {
+            sendFunction(connection, uri.c_str(), position);
+        }
+    } while (read > 0);
+
+    return buffer;
+}
+
 const MpdClientWrapper::MpdStatusPtr &MpdClientWrapper::GetStatus()
 {
     ThrowIfNotConnected();

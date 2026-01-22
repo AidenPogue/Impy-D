@@ -51,6 +51,8 @@ private:
 
     void SetupFind(const std::vector<std::unique_ptr<ImpyD::Mpd::IFilterGenerator>> *filters, mpd_tag_type sort) const;
 
+    std::vector<char> LoadAlbumArtSyncImpl(const std::string &uri, bool (*sendFunction)(mpd_connection*, const char*, unsigned)) const;
+
 public:
 
 
@@ -109,6 +111,10 @@ public:
     void FindAddQueue(const std::vector<std::unique_ptr<ImpyD::Mpd::IFilterGenerator>> *filters = nullptr, mpd_tag_type sort = MPD_TAG_UNKNOWN) const;
 
 
+
+    //Artwork
+    std::vector<char> LoadAlbumArtSync(const std::string &uri) const;
+    std::vector<char> ReadPictureSync(const std::string &uri) const;
 
     void Poll();
 };
