@@ -1,25 +1,40 @@
 #pragma once
 
 #include "PanelBase.hpp"
+#include "../PanelFactory/RegisterPanel.hpp"
 #include "backends/imgui_impl_opengl3_loader.h"
 
 namespace ImMPD
 {
-    class SimpleAlbumArt : public PanelBase
+    class SimpleAlbumArt : public ImpyD::PanelBase, ImpyD::PanelFactory::RegisterPanel<SimpleAlbumArt>
     {
     private:
         GLuint currentArtTexture = 0;
+        float currentArtAspect = 1;
+        bool preserveAspectRatio = true;
         uint8_t *receiveBuffer = NULL;
 
-        void LoadArtTexture(MpdClientWrapper *client, mpd_song *song);
+        void SetArtwork(MpdClientWrapper &client, const std::string &uri);
 
     public:
-        SimpleAlbumArt();
-        void Draw(MpdClientWrapper *client) override;
-        const char *GetTitle() override;
+        explicit SimpleAlbumArt(int panelId)
+            : PanelBase(panelId)
+        {
+        }
 
-        void OnIdleEvent(MpdClientWrapper *client, MpdIdleEventData *data) override;
+        IMPYD_REGISTER_PANEL_FactoryFunc(SimpleAlbumArt);
+        IMPYD_REGISTER_PANEL_GetFactoryName("Simple Album Art");
 
-        void InitState(MpdClientWrapper *client) override;
+        std::string PanelName() override;
+
+    protected:
+        void DrawContents(MpdClientWrapper &client) override;
+
+        void SetCurrentArtwork(MpdClientWrapper &client);
+
+    public:
+        void OnIdleEvent(MpdClientWrapper &client, mpd_idle event) override;
+
+        void InitState(MpdClientWrapper &client) override;
     };
 }

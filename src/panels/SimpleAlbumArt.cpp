@@ -1,54 +1,85 @@
 #include "SimpleAlbumArt.hpp"
+
 #include "imgui.h"
 #include "../Utils.hpp"
+#include "../Mpd/AlbumArtHelper.hpp"
 
-
-void ImMPD::SimpleAlbumArt::LoadArtTexture(MpdClientWrapper *client, mpd_song *song)
+void ImMPD::SimpleAlbumArt::SetArtwork(MpdClientWrapper &client, const std::string &uri)
 {
-
     if (currentArtTexture)
     {
         glDeleteTextures(1, &currentArtTexture);
     }
-    mpd_album()
-    ImMPD::Utils::LoadTextureFromMemory()
+
+    ImVec2 dimensions;
+    //client.BeginNoIdle();
+    currentArtTexture = ImpyD::Mpd::AlbumArtHelper::LoadArtworkToGPU(client, uri, dimensions, false);
+    //client.EndNoIdle();
+    currentArtAspect = dimensions.x / dimensions.y;
 }
 
-ImMPD::SimpleAlbumArt::SimpleAlbumArt()
+std::string ImMPD::SimpleAlbumArt::PanelName()
 {
-
+    return GetFactoryName();
 }
 
-void ImMPD::SimpleAlbumArt::Draw(MpdClientWrapper *client)
+void ImMPD::SimpleAlbumArt::DrawContents(MpdClientWrapper &client)
 {
-    if (ImGui::Begin(GetTitle()))
+    //Can we do this?
+    if (currentArtTexture)
     {
-        //Can we do this?
-        if (currentArtTexture)
+        auto size = ImGui::GetContentRegionAvail();
+
+        if (preserveAspectRatio)
         {
-            //Double cast baybee
-            ImGui::Image((ImTextureID)(intptr_t)currentArtTexture, ImGui::GetContentRegionAvail());
+            auto oldSize = size;
+            size.x = oldSize.y * currentArtAspect;
+
+            //Adjust dimensions
+            if (size.x > oldSize.x)
+            {
+                size.x = oldSize.x;
+                size.y = size.x / currentArtAspect;
+            }
+
+            //Center in window.
+            auto available = ImGui::GetContentRegionAvail();
+
+            auto cursor = ImGui::GetCursorPos();
+            cursor.x += available.x / 2 - size.x / 2;
+            cursor.y += available.y / 2 - size.y / 2;
+            ImGui::SetCursorPos(cursor);
         }
+
+        //Double cast baybee
+        ImGui::Image((ImTextureID)(intptr_t)currentArtTexture, size);
     }
-
-    ImGui::End();
 }
 
-const char *ImMPD::SimpleAlbumArt::GetTitle()
+void ImMPD::SimpleAlbumArt::SetCurrentArtwork(MpdClientWrapper &client)
 {
-    return "Simple Album Art Viewer";
-}
-
-void ImMPD::SimpleAlbumArt::OnIdleEvent(MpdClientWrapper *client, MpdIdleEventData *data)
-{
-    if (data->idleEvent == MPD_IDLE_PLAYER)
+    auto &curSong = client.GetCurrentSong();
+    if (curSong)
     {
-
-
+        SetArtwork(client, mpd_song_get_uri(curSong.get()));
+    }
+    else
+    {
+        currentArtTexture = 0;
     }
 }
 
-void ImMPD::SimpleAlbumArt::InitState(MpdClientWrapper *client)
+void ImMPD::SimpleAlbumArt::OnIdleEvent(MpdClientWrapper &client, mpd_idle event)
 {
-    PanelBase::InitState(client);
+    if (event & MPD_IDLE_PLAYER)
+    {
+        SetCurrentArtwork(client);
+    }
+}
+
+void ImMPD::SimpleAlbumArt::InitState(MpdClientWrapper &client)
+{
+    client.BeginNoIdle();
+    SetCurrentArtwork(client);
+    client.EndNoIdle();
 }
