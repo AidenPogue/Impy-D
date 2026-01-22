@@ -27,6 +27,8 @@ public:
     [[nodiscard]] unsigned GetDurationMs() const override;
 
     [[nodiscard]] std::string GetUri() const override;
+
+    [[nodiscard]] std::vector<std::unique_ptr<ImpyD::Mpd::IFilterGenerator>> GetFilters() const override;
 };
 
 

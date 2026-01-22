@@ -3,6 +3,8 @@
 #include <assert.h>
 #include <stdexcept>
 
+#include "UriFilterGenerator.hpp"
+
 MpdSongWrapper::MpdSongWrapper(mpd_song *song) : song(std::shared_ptr<mpd_song>(song, &mpd_song_free))
 {
     assert(song);
@@ -45,4 +47,11 @@ unsigned MpdSongWrapper::GetDurationMs() const
 std::string MpdSongWrapper::GetUri() const
 {
     return mpd_song_get_uri(song.get());
+}
+
+std::vector<std::unique_ptr<ImpyD::Mpd::IFilterGenerator>> MpdSongWrapper::GetFilters() const
+{
+    auto out = std::vector<std::unique_ptr<ImpyD::Mpd::IFilterGenerator>>();
+    out.emplace_back(std::make_unique<UriFilterGenerator>(mpd_song_get_uri(song.get())));
+    return out;
 }
