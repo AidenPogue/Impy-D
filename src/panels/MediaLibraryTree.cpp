@@ -70,9 +70,6 @@ namespace ImpyD {
         //This seems wrong.
         if (childIsBaseLayer)
         {
-            //MPD won't let you use find with no filters, so we get a bit creative.
-            //TODO: Do this
-
             auto songs = client.Find(&filters, allTags.front());
             for (auto &song : songs)
             {
@@ -174,20 +171,20 @@ namespace ImpyD {
             {
                 DrawChildren(client, childItem);
             }
-            else if (ImGui::TreeNodeEx(childItem.content.c_str(), flags))
+            else
             {
-                if (item.children)
-                {
-                    DrawChildren(client, childItem);
-                }
-
-                ImGui::TreePop();
-            }
-
-            //If the item was expanded it means we didn't draw anything ourselves, so we don't handle context menu.
-            if (!shouldExpandItem)
-            {
+                auto nodeOpen = ImGui::TreeNodeEx(childItem.content.c_str(), flags);
+                //Only draw context menu here because this is the only spot this method actually draws.
                 DrawTreeItemContextMenu(client, childItem);
+                if (nodeOpen)
+                {
+                    if (item.children)
+                    {
+                        DrawChildren(client, childItem);
+                    }
+
+                    ImGui::TreePop();
+                }
             }
 
             ImGui::PopID();
