@@ -317,6 +317,50 @@ std::vector<ImpyD::Mpd::ArbitraryTagged> MpdClientWrapper::List(
     return list;
 }
 
+void MpdClientWrapper::SetupFind(const std::vector<std::unique_ptr<ImpyD::Mpd::IFilterGenerator>> *filters, mpd_tag_type sort) const
+{
+
+    if (!filters || filters->empty())
+    {
+        //Fight me, MPD docs. I WILL keep a copy of the entire database
+        mpd_search_add_expression(connection, "(any != '')");
+    }
+    else
+    {
+        for (auto &expression : *filters)
+        {
+            expression->ApplyFilter(connection);
+        }
+    }
+
+    if (sort != MPD_TAG_UNKNOWN)
+    {
+        mpd_search_add_sort_tag(connection, sort, false);
+    }
+}
+
+std::vector<MpdSongWrapper> MpdClientWrapper::Find(const std::vector<std::unique_ptr<ImpyD::Mpd::IFilterGenerator>> *filters, mpd_tag_type sort) const
+{
+    mpd_search_cancel(connection);
+    mpd_search_db_songs(connection, true);
+
+    SetupFind(filters, sort);
+
+    mpd_search_commit(connection);
+
+    return ReceiveSongList();
+}
+
+void MpdClientWrapper::FindAddQueue(const std::vector<std::unique_ptr<ImpyD::Mpd::IFilterGenerator>> *filters, mpd_tag_type sort) const
+{
+    mpd_search_cancel(connection);
+    mpd_search_add_db_songs(connection, true);
+
+    SetupFind(filters, sort);
+
+    mpd_search_commit(connection);
+    mpd_response_finish(connection);
+}
 const MpdClientWrapper::MpdStatusPtr &MpdClientWrapper::GetStatus()
 {
     ThrowIfNotConnected();

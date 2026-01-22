@@ -49,6 +49,8 @@ private:
 
     std::vector<MpdSongWrapper> ReceiveSongList() const;
 
+    void SetupFind(const std::vector<std::unique_ptr<ImpyD::Mpd::IFilterGenerator>> *filters, mpd_tag_type sort) const;
+
 public:
 
 
@@ -74,6 +76,8 @@ public:
      */
     [[nodiscard]] mpd_idle GetIdleEventsAndClear();
 
+
+    //Queue
     const MpdSongPtr &GetCurrentSong();
 
     [[nodiscard]] std::vector<MpdSongWrapper> GetQueue() const;
@@ -99,7 +103,12 @@ public:
     //Database
     [[nodiscard]] std::vector<ImpyD::Mpd::ArbitraryTagged> List(
         const std::vector<mpd_tag_type> *groups,
-        const std::vector<std::unique_ptr<ImpyD::Mpd::IFilterGenerator>> *filters = nullptr);
+        const std::vector<std::unique_ptr<ImpyD::Mpd::IFilterGenerator> > *filters = nullptr);
+
+    [[nodiscard]] std::vector<MpdSongWrapper> Find(const std::vector<std::unique_ptr<ImpyD::Mpd::IFilterGenerator>> *filters = nullptr, mpd_tag_type sort = MPD_TAG_UNKNOWN) const;
+    void FindAddQueue(const std::vector<std::unique_ptr<ImpyD::Mpd::IFilterGenerator>> *filters = nullptr, mpd_tag_type sort = MPD_TAG_UNKNOWN) const;
+
+
 
     void Poll();
 };
