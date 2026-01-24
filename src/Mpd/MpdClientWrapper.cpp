@@ -377,14 +377,16 @@ std::vector<char> MpdClientWrapper::ReadPictureSync(const std::string &uri) cons
 std::vector<char> MpdClientWrapper::LoadAlbumArtSyncImpl(const std::string &uri, bool (*sendFunction) (mpd_connection *, const char *, unsigned)) const
 {
     sendFunction(connection, uri.c_str(), 0);
-    if (mpd_connection_get_error(connection) != MPD_ERROR_SUCCESS)
+    auto sizePair = mpd_recv_pair(connection);
+
+    if (!sizePair)
     {
         mpd_connection_clear_error(connection);
         return {};
     }
-    auto sizePair = mpd_recv_pair(connection);
+
     auto buffer = std::vector<char>();
-    buffer.reserve(std::stoi(sizePair->value));
+    buffer.resize(std::stoi(sizePair->value));
     mpd_return_pair(connection, sizePair);
 
     int read = 0;
@@ -393,6 +395,13 @@ std::vector<char> MpdClientWrapper::LoadAlbumArtSyncImpl(const std::string &uri,
     do
     {
         read = mpd_recv_albumart(connection, buffer.data() + position, buffer.capacity());
+
+        if (read == -1)
+        {
+            mpd_connection_clear_error(connection);
+            return {};
+        }
+
         mpd_response_finish(connection);
         position += read;
         if (read > 0)

@@ -8,12 +8,12 @@ namespace ImpyD::Mpd
     {
         auto data = tryReadPictureFirst ? client.ReadPictureSync(uri) : client.LoadAlbumArtSync(uri);
 
-        if (data.capacity() == 0)
+        if (data.empty())
         {
             data = tryReadPictureFirst ? client.LoadAlbumArtSync(uri) : client.ReadPictureSync(uri);
         }
 
-        if (data.capacity() == 0)
+        if (data.empty())
         {
             //TODO: Load default artwork?
             return 0;
@@ -21,7 +21,7 @@ namespace ImpyD::Mpd
 
         GLuint tex = 0;
         int width, height;
-        Utils::LoadTextureFromMemory(data.data(), data.capacity(), &tex, &width, &height);
+        Utils::LoadTextureFromMemory(data.data(), data.size(), &tex, &width, &height);
         dimensions.x = width;
         dimensions.y = height;
         return tex;
