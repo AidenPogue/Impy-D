@@ -37,5 +37,7 @@ namespace ImMPD
         void OnIdleEvent(MpdClientWrapper &client, mpd_idle event) override;
 
         void InitState(MpdClientWrapper &client) override;
+
+        void DrawContextMenu(MpdClientWrapper &client) override;
     };
 }

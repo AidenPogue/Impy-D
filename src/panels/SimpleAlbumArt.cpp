@@ -17,9 +17,7 @@ void ImMPD::SimpleAlbumArt::SetArtwork(MpdClientWrapper &client, const std::stri
     }
 
     ImVec2 dimensions;
-    //client.BeginNoIdle();
     currentArtTexture = ImpyD::Mpd::AlbumArtHelper::LoadArtworkToGPU(client, uri, dimensions, false);
-    //client.EndNoIdle();
     currentArtAspect = dimensions.x / dimensions.y;
     currentSongUri = uri;
 }
@@ -88,4 +86,9 @@ void ImMPD::SimpleAlbumArt::InitState(MpdClientWrapper &client)
     client.BeginNoIdle();
     SetCurrentArtwork(client);
     client.EndNoIdle();
+}
+
+void ImMPD::SimpleAlbumArt::DrawContextMenu(MpdClientWrapper &client)
+{
+    ImGui::MenuItem("Preserve Aspect Ratio", nullptr, &preserveAspectRatio);
 }
