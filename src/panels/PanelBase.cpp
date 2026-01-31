@@ -34,6 +34,7 @@ void ImpyD::PanelBase::Draw(MpdClientWrapper &client)
             if (ImGui::MenuItem("Change Title"))
             {
             }
+            DrawContextMenu(client);
             ImGui::EndPopup();
         }
         DrawContents(client);
@@ -47,3 +48,6 @@ ImpyD::PanelBase::~PanelBase()
 {
     printf("Desctrocota\n");
 }
+
+void ImpyD::PanelBase::DrawContextMenu(MpdClientWrapper &client)
+{ }

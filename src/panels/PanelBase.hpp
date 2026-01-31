@@ -54,5 +54,11 @@ namespace ImpyD
          * @param client The connected client.
          */
         virtual void InitState(MpdClientWrapper &client) {}
+
+        /**
+         * Draws context menu items for this panel, if any.
+         * @param client The connected client.
+         */
+        virtual void DrawContextMenu(MpdClientWrapper &client);
     };
 } // namespace ImMPD
