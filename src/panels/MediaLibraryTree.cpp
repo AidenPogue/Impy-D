@@ -13,7 +13,7 @@ namespace ImpyD {
         LibraryLayer("%albumartist%", ""),
         LibraryLayer("(%date%) %album%", "%date% %album%"),
         LibraryLayer("Disc %disc%", "", false, true),
-        LibraryLayer("%disc%.%track% - %title% (%duration%)", "")
+        LibraryLayer("%disc%.%track% - %title% - %artist% (%duration%)", "")
     };
 
     MediaLibraryTree::TreeItem::TreeItem(TreeItem *parent, std::unique_ptr<TitleFormatting::ITagged> taggedItem,
@@ -152,7 +152,7 @@ namespace ImpyD {
             FetchChildren(client, item);
         }
 
-        int flags = ImGuiTreeNodeFlags_SpanFullWidth;
+        int flags = ImGuiTreeNodeFlags_SpanFullWidth | ImGuiTreeNodeFlags_DrawLinesToNodes;
         //If our children are base layer
         if (item.layerIndex == testLayers.size() - 2)
         {
