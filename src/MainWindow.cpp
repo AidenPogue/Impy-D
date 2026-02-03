@@ -76,20 +76,10 @@ namespace ImpyD
 
     void MainWindow::Draw(MpdClientWrapper &client)
     {
-        // bool idle = false;
-        // if (!panelsToCreate.empty())
-        // {
-        //     client.BeginNoIdle();
-        //     idle = true;
-        // }
         for (const auto &id : panelsToCreate)
         {
             CreatePanelById(client, id);
         }
-        // if (idle)
-        // {
-        //     client.EndNoIdle();
-        // }
 
         panelsToCreate.clear();
 
@@ -120,19 +110,9 @@ namespace ImpyD
 
     void MainWindow::SendIdleEventToPanels(MpdClientWrapper &client, mpd_idle event) const
     {
-        bool idle = false;
-        if (!panels.empty())
-        {
-            client.BeginNoIdle();
-            idle = true;
-        }
         for (const auto &panel : panels)
         {
             panel->OnIdleEvent(client, event);
-        }
-        if (idle)
-        {
-            client.EndNoIdle();
         }
     }
 } // ImpyD
