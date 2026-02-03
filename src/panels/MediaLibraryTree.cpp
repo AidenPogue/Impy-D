@@ -102,7 +102,27 @@ namespace ImpyD {
 
     void MediaLibraryTree::DrawContents(MpdClientWrapper &client)
     {
-        DrawChildren(client, rootItems[0]);
+        static char filter[256];
+        static const char *test[] = {"Those", "who", "know"};
+
+        int x = 0;
+        ImGui::PushItemWidth(100);
+        ImGui::Combo("##layers", &x, test, 3);
+        ImGui::PopItemWidth();
+        ImGui::SameLine();
+        ImGui::PushItemWidth(ImGui::GetContentRegionAvail().x);
+        ImGui::InputTextWithHint("##filter", "Filter...", filter, sizeof(filter));
+        ImGui::PopItemWidth();
+
+
+
+
+        if (ImGui::BeginChild("TreeView"))
+        {
+            DrawChildren(client, rootItems[0]);
+
+            ImGui::EndChild();
+        }
     }
 
     void MediaLibraryTree::DrawTreeItemContextMenu(MpdClientWrapper &client, TreeItem &childItem)
