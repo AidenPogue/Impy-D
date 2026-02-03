@@ -21,31 +21,23 @@ ImpyD::PlaybackButtonsPanel::~PlaybackButtonsPanel() = default;
 
 void ImpyD::PlaybackButtonsPanel::DrawContents(MpdClientWrapper &client)
 {
-    if (ImGui::BeginPopupContextWindow())
+    if (ImGui::Button("|<<"))
     {
-        // ImGui::Selectable("Test", &test);
-        ImGui::EndPopup();
-    }
-
-    if (ImGui::Button("|<<")) {
-        client.BeginNoIdle();
         client.Prev();
-        client.EndNoIdle();
     }
 
     ImGui::SameLine();
 
-    if (ImGui::Button(">||")) {
-        client.BeginNoIdle();
+    if (ImGui::Button(">||"))
+    {
         client.Toggle();
-        client.EndNoIdle();
     }
+
     ImGui::SameLine();
 
-    if (ImGui::Button(">>|")) {
-        client.BeginNoIdle();
+    if (ImGui::Button(">>|"))
+    {
         client.Next();
-        client.EndNoIdle();
     }
 }
 

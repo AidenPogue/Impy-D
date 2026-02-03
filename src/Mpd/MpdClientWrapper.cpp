@@ -36,11 +36,6 @@ MpdClientWrapper::~MpdClientWrapper()
 {
 }
 
-void MpdClientWrapper::ClearCache()
-{
-    cache = MpdClientCache();
-}
-
 void MpdClientWrapper::ThrowIfNotConnected()
 {
     if (!GetIsConnected())
@@ -54,6 +49,7 @@ int MpdClientWrapper::Connect()
     if (connection == nullptr)
     {
         connection = mpd_connection_new(hostname, port, 0);
+        mpd_connection_set_keepalive(connection, true);
         if (mpd_connection_get_error(connection) != MPD_ERROR_SUCCESS)
         {
             std::cerr << "Connection error: " << mpd_connection_get_error_message(connection) << std::endl;
@@ -61,31 +57,10 @@ int MpdClientWrapper::Connect()
             connection = nullptr;
             return 1;
         }
-        mpd_send_idle(connection);
         return 0;
     }
 
     return 1;
-}
-
-
-bool MpdClientWrapper::ReceiveIdle()
-{
-    ThrowIfNotConnected();
-    struct pollfd pfd;
-    pfd.fd = mpd_connection_get_fd(connection);
-    pfd.events = POLLIN;   // data available to read
-    pfd.revents = 0;
-
-    int ret = poll(&pfd, 1, 0);
-
-    if (ret > 0 && pfd.revents & (POLLIN | POLLERR | POLLHUP))
-    {
-        idleEvents |= mpd_recv_idle(connection, false);
-        ClearCache();
-        return false;
-    }
-    return !noIdleMode;
 }
 
 bool MpdClientWrapper::GetIsConnected() const
@@ -100,46 +75,10 @@ bool MpdClientWrapper::GetIsConnected() const
     return true;
 }
 
-void MpdClientWrapper::BeginNoIdle()
-{
-    assert(!noIdleMode);
-    if (ReceiveIdle())
-    {
-        mpd_run_noidle(connection);
-    }
-    noIdleMode = true;
-}
-
-void MpdClientWrapper::EndNoIdle()
-{
-    assert(noIdleMode);
-    ReceiveIdle();
-    mpd_send_idle(connection);
-    noIdleMode = false;
-}
-
-bool MpdClientWrapper::HasIdleEvent()
-{
-    return idleEvents != 0;
-}
-
-mpd_idle MpdClientWrapper::GetIdleEventsAndClear()
-{
-    auto old = idleEvents;
-    idleEvents = 0;
-    return static_cast<mpd_idle>(old);
-}
-
-const MpdClientWrapper::MpdSongPtr &MpdClientWrapper::GetCurrentSong()
+const MpdClientWrapper::MpdSongPtr MpdClientWrapper::GetCurrentSong()
 {
     ThrowIfNotConnected();
-
-    if (cache.currentSong == nullptr)
-    {
-        cache.currentSong = {mpd_run_current_song(connection), &mpd_song_free};
-    }
-    
-    return cache.currentSong;
+    return {mpd_run_current_song(connection), &mpd_song_free};
 }
 
 std::vector<MpdSongWrapper> MpdClientWrapper::GetQueue() const
@@ -151,14 +90,12 @@ std::vector<MpdSongWrapper> MpdClientWrapper::GetQueue() const
 bool MpdClientWrapper::ClearQueue()
 {
     ThrowIfNotConnected();
-    ClearCache();
     return mpd_run_clear(connection);
 }
 
 bool MpdClientWrapper::RandomizeQueue()
 {
     ThrowIfNotConnected();
-    ClearCache();
     return mpd_run_shuffle(connection);
 }
 
@@ -167,8 +104,6 @@ bool MpdClientWrapper::PlayCurrent()
     ThrowIfNotConnected();
 
     auto res= mpd_run_play(connection);
-    ClearCache();
-    
     return res;
 }
 
@@ -176,7 +111,6 @@ bool MpdClientWrapper::PlayId(unsigned id)
 {
     ThrowIfNotConnected();
     auto res = mpd_run_play_id(connection, id);
-    ClearCache();
     return res;
 }
 
@@ -184,7 +118,6 @@ bool MpdClientWrapper::Pause()
 {
     ThrowIfNotConnected();
     auto res= mpd_run_pause(connection, true);
-    ClearCache();
     return res;
 }
 
@@ -204,7 +137,6 @@ bool MpdClientWrapper::Toggle()
     {
         res = mpd_run_pause(connection, state != MPD_STATE_PAUSE);
     }
-    ClearCache();
     return res;
 }
 
@@ -212,7 +144,6 @@ bool MpdClientWrapper::Next()
 {
     ThrowIfNotConnected();
     auto res= mpd_run_next(connection);
-    ClearCache();
     return res;
 }
 
@@ -220,7 +151,6 @@ bool MpdClientWrapper::Prev()
 {
     ThrowIfNotConnected();
     auto res= mpd_run_previous(connection);
-    ClearCache();
     return res;
 }
 
@@ -228,7 +158,6 @@ bool MpdClientWrapper::SeekToSeconds(float s, bool relative)
 {
     ThrowIfNotConnected();
     auto res= mpd_run_seek_current(connection, s, relative);
-    ClearCache();
     return res;
 }
 
@@ -236,14 +165,12 @@ bool MpdClientWrapper::SetVolume(int volume)
 {
     ThrowIfNotConnected();
     auto res= mpd_run_set_volume(connection, volume);
-    ClearCache();
     return res;
 }
 
 bool MpdClientWrapper::ChangeVolume(int by)
 {
     ThrowIfNotConnected();
-    ClearCache();
     return mpd_run_change_volume(connection, by);
 }
 
@@ -413,16 +340,10 @@ std::vector<char> MpdClientWrapper::LoadAlbumArtSyncImpl(const std::string &uri,
     return buffer;
 }
 
-const MpdClientWrapper::MpdStatusPtr &MpdClientWrapper::GetStatus()
+const MpdClientWrapper::MpdStatusPtr MpdClientWrapper::GetStatus()
 {
     ThrowIfNotConnected();
-
-    if (cache.status == nullptr)
-    {
-        cache.status = {mpd_run_status(connection), &mpd_status_free};
-    }
-    
-    return cache.status;
+    return {mpd_run_status(connection), &mpd_status_free};
 }
 
 std::vector<MpdSongWrapper> MpdClientWrapper::ReceiveSongList() const
@@ -437,13 +358,4 @@ std::vector<MpdSongWrapper> MpdClientWrapper::ReceiveSongList() const
     }
 
     return list;
-}
-
-void MpdClientWrapper::Poll()
-{
-    assert(!noIdleMode);
-    if (!ReceiveIdle())
-    {
-        mpd_send_idle(connection);
-    }
 }

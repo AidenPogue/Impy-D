@@ -26,10 +26,8 @@ void ImpyD::SeekBar::DrawContents(MpdClientWrapper &client)
     {
         printf("Seeking to %f\n", currentSeek);
 
-        client.BeginNoIdle();
-        client.SeekToSeconds(currentSeek, false);
-        client.EndNoIdle();
-    }
+                client.SeekToSeconds(currentSeek, false);
+            }
 
     if (!ImGui::IsItemActive())
     {
@@ -51,13 +49,10 @@ void ImpyD::SeekBar::OnIdleEvent(MpdClientWrapper &client, mpd_idle event)
 void ImpyD::SeekBar::InitState(MpdClientWrapper &client)
 {
     windowFlags = ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoScrollWithMouse;
-    client.BeginNoIdle();
 
-    auto& song = client.GetCurrentSong();
-    auto& status = client.GetStatus();
+    auto &song = client.GetCurrentSong();
+    auto &status = client.GetStatus();
     SetState(song, status);
-
-    client.EndNoIdle();
 }
 
 std::string ImpyD::SeekBar::PanelName()

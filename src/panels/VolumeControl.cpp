@@ -28,15 +28,12 @@ namespace ImpyD {
         const auto mouseWheel = ImGui::GetIO().MouseWheel;
         if (!sliderEdited && ImGui::IsItemHovered() && mouseWheel != 0)
         {
-            client.BeginNoIdle();
-            client.ChangeVolume(2 * (int)mouseWheel);
-            client.EndNoIdle();
+            //TODO: Configurable change amount.
+            client.ChangeVolume(2 * (int) mouseWheel);
         }
         else if (currentValue != oldValue)
         {
-            client.BeginNoIdle();
             client.SetVolume(currentValue);
-            client.EndNoIdle();
         }
 
         ImGui::EndDisabled();
@@ -57,10 +54,8 @@ namespace ImpyD {
 
     void VolumeControl::InitState(MpdClientWrapper &client)
     {
-        client.BeginNoIdle();
-        auto& status = client.GetStatus();
+        auto &status = client.GetStatus();
         SetState(status);
-        client.EndNoIdle();
     }
 
     std::string VolumeControl::PanelName()

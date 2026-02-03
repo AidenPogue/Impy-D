@@ -65,7 +65,6 @@ namespace ImpyD {
 
         auto filters = item.GetAllFilters();
 
-        client.BeginNoIdle();
 
         //This seems wrong.
         if (childIsBaseLayer)
@@ -87,7 +86,6 @@ namespace ImpyD {
             }
         }
 
-        client.EndNoIdle();
     }
 
     MediaLibraryTree::MediaLibraryTree(int panelId): PanelBase(panelId)
@@ -114,7 +112,6 @@ namespace ImpyD {
 
             if (append || send)
             {
-                client.BeginNoIdle();
 
                 // Only collect all filters if it's not from the base layer (songs just need URL)
                 // It would still work fine if we only used GetAllFilters, but it would be redundant for songs.
@@ -132,7 +129,6 @@ namespace ImpyD {
                     client.PlayCurrent();
                 }
 
-                client.EndNoIdle();
             }
 
             ImGui::EndPopup();

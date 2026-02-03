@@ -83,9 +83,7 @@ void ImMPD::SimpleAlbumArt::OnIdleEvent(MpdClientWrapper &client, mpd_idle event
 
 void ImMPD::SimpleAlbumArt::InitState(MpdClientWrapper &client)
 {
-    client.BeginNoIdle();
     SetCurrentArtwork(client);
-    client.EndNoIdle();
 }
 
 void ImMPD::SimpleAlbumArt::DrawContextMenu(MpdClientWrapper &client)

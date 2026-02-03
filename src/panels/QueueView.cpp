@@ -50,16 +50,14 @@ namespace ImpyD
         //Buttons
         if (ImGui::Button("Clear"))
         {
-            client.BeginNoIdle();
             client.ClearQueue();
-            client.EndNoIdle();
         }
+
         ImGui::SameLine();
+
         if (ImGui::Button("Randomize"))
         {
-            client.BeginNoIdle();
             client.RandomizeQueue();
-            client.EndNoIdle();
         }
 
         ImGuiListClipper clipper;
@@ -104,9 +102,7 @@ namespace ImpyD
                                 && !ImGui::IsMouseDown(0)
                             )
                             {
-                                client.BeginNoIdle();
                                 client.PlayId(songId);
-                                client.EndNoIdle();
                             }
                             ImGui::PopID();
                         } else
@@ -144,11 +140,8 @@ namespace ImpyD
 
     void QueueView::InitState(MpdClientWrapper &client)
     {
-
-        client.BeginNoIdle();
         UpdateQueue(client);
         SetState(client);
-        client.EndNoIdle();
     }
 
     std::string QueueView::PanelName()

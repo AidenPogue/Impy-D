@@ -22,30 +22,14 @@ public:
     using MpdStatusPtr = std::unique_ptr<mpd_status, decltype(&mpd_status_free)>;
 
 private:
-    struct MpdClientCache
-    {
-        MpdSongPtr currentSong = {nullptr, &mpd_song_free};
-        MpdStatusPtr status = {nullptr, &mpd_status_free};
-    };
-
-
     const char *hostname;
     unsigned int port;
 
-    bool noIdleMode = false;
-
     mpd_connection *connection = nullptr;
-
-    int idleEvents = 0;
-
-    MpdClientCache cache;
-    void ClearCache();
 
     void ThrowIfNotConnected();
 
     int Connect();
-
-    bool ReceiveIdle();
 
     std::vector<MpdSongWrapper> ReceiveSongList() const;
 
@@ -61,32 +45,14 @@ public:
 
     [[nodiscard]] bool GetIsConnected() const;
 
-    /**
-     * Sends the noidle command to MPD. Call this before sending commands *outside an event handler*
-     */
-    void BeginNoIdle();
-    void EndNoIdle();
-
-    /**
-     * Gets whether at least one idle event is waiting on this client.
-     */
-    bool HasIdleEvent();
-
-    /**
-     * Gets the bitmask of all the idle events accumulated since the last call to this method and clears it.
-     * @return The idle events.
-     */
-    [[nodiscard]] mpd_idle GetIdleEventsAndClear();
-
-
     //Queue
-    const MpdSongPtr &GetCurrentSong();
+    const MpdSongPtr GetCurrentSong();
 
     [[nodiscard]] std::vector<MpdSongWrapper> GetQueue() const;
     bool ClearQueue();
     bool RandomizeQueue();
 
-    const MpdStatusPtr &GetStatus();
+    const MpdStatusPtr GetStatus();
     //bool StartAlbumArt(const char *uri, )
 
     //Playback
@@ -115,6 +81,4 @@ public:
     //Artwork
     std::vector<char> LoadAlbumArtSync(const std::string &uri) const;
     std::vector<char> ReadPictureSync(const std::string &uri) const;
-
-    void Poll();
 };
