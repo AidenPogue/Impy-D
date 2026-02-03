@@ -9,12 +9,10 @@
 class LibraryLayer
 {
 public:
-    LibraryLayer(std::string display_format, std::string sorting_format, bool eager_load_children = false,
-        bool expand_if_no_siblings = false);
+    LibraryLayer(std::string display_format, mpd_tag_type sortingTag, bool expand_if_no_siblings = false);
 
     const std::string displayFormat;
-    const std::string sortingFormat;
-    const bool eagerLoadChildren = false;
+    const mpd_tag_type sortingTag;
     /**
      * If true, any children of an instance of this layer will be placed into the instance's parent if it is the only child of the parent.
      */
@@ -22,6 +20,10 @@ public:
 
     const std::vector<mpd_tag_type> usedTags;
 
+    /**
+     * Gets a vector of all the unique tags used in this layer's format, with sortingTag always being the first element.
+     * @return A vector of the used tags
+     */
     [[nodiscard]] std::vector<mpd_tag_type> GetUsedTags() const;
 };
 

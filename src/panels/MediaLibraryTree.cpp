@@ -10,10 +10,10 @@ namespace ImpyD {
 
     static std::vector<LibraryLayer> testLayers =
     {
-        LibraryLayer("%albumartist%", ""),
-        LibraryLayer("(%date%) %album%", "%date% %album%"),
-        LibraryLayer("Disc %disc%", "", false, true),
-        LibraryLayer("%disc%.%track% - %title% - %artist% (%duration%)", "")
+        LibraryLayer("%albumartist%", MPD_TAG_ALBUM_ARTIST),
+        LibraryLayer("%album% (%date%)", MPD_TAG_DATE),
+        LibraryLayer("Disc %disc%", MPD_TAG_DISC, true),
+        LibraryLayer("%disc%.%track% - %title% - %artist% (%duration%)", MPD_TAG_TRACK)
     };
 
     MediaLibraryTree::TreeItem::TreeItem(TreeItem *parent, std::unique_ptr<TitleFormatting::ITagged> taggedItem,
@@ -61,7 +61,7 @@ namespace ImpyD {
 
         auto childIsBaseLayer = item.layerIndex == testLayers.size() - 2;
 
-        auto allTags = testLayers[item.layerIndex + 1].GetUsedTags();;
+        auto allTags = testLayers[item.layerIndex + 1].GetUsedTags();
 
         auto filters = item.GetAllFilters();
 
