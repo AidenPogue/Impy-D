@@ -9,20 +9,19 @@
 namespace ImpyD {
     void VolumeControl::SetState(const MpdClientWrapper::MpdStatusPtr &status)
     {
-        if (status == nullptr)
-        {
-            return;
-        }
+        currentValue = status ? mpd_status_get_volume(status.get()) : -1;
+    }
 
-        currentValue = mpd_status_get_volume(status.get());
+    VolumeControl::VolumeControl(int panelId): PanelBase(panelId)
+    {
+        windowFlags = ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoScrollWithMouse;
     }
 
     void VolumeControl::DrawContents(MpdClientWrapper &client)
     {
-        //Set these in constructor?
-        windowFlags = ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoScrollWithMouse;
-
         const auto oldValue = currentValue;
+
+        ImGui::BeginDisabled(currentValue == -1);
 
         ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
         const auto sliderEdited = ImGui::SliderInt("##", &currentValue, 0, 100, "%d%%");
@@ -39,6 +38,8 @@ namespace ImpyD {
             client.SetVolume(currentValue);
             client.EndNoIdle();
         }
+
+        ImGui::EndDisabled();
     }
 
     VolumeControl::~VolumeControl()
@@ -48,7 +49,7 @@ namespace ImpyD {
 
     void VolumeControl::OnIdleEvent(MpdClientWrapper &client, mpd_idle event)
     {
-        if (event & MPD_IDLE_MIXER)
+        if (event & (MPD_IDLE_MIXER | MPD_IDLE_PLAYER))
         {
             SetState(client.GetStatus());
         }

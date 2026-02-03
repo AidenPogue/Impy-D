@@ -19,8 +19,7 @@ namespace ImpyD {
         IMPYD_REGISTER_PANEL_FactoryFunc(VolumeControl)
         IMPYD_REGISTER_PANEL_GetFactoryName("Volume Control Slider")
 
-        VolumeControl(int panelId)
-            : PanelBase(panelId) {}
+        VolumeControl(int panelId);
 
         void DrawContents(MpdClientWrapper &client) override;
 
