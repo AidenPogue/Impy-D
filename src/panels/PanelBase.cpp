@@ -19,6 +19,8 @@ void ImpyD::PanelBase::SetTitle(const std::string &title)
     this->title = title + "###" + std::to_string(panelId);
 }
 
+static char editingTitle[128];
+
 void ImpyD::PanelBase::Draw(MpdClientWrapper &client)
 {
     //Cant do this in constructor because PanelName is pure virtual
@@ -33,15 +35,33 @@ void ImpyD::PanelBase::Draw(MpdClientWrapper &client)
         {
             if (ImGui::MenuItem("Change Title"))
             {
+                title.copy(editingTitle, sizeof(editingTitle));
+                ImGui::OpenPopup("Rename123");
             }
+
+            ImGui::Separator();
+
             DrawContextMenu(client);
+
             ImGui::EndPopup();
         }
+
+        if (ImGui::BeginPopupModal("Rename123"))
+        {
+            ImGui::InputText("New title", editingTitle, sizeof(editingTitle));
+            if (ImGui::Button("Rename"))
+            {
+                SetTitle(editingTitle);
+                ImGui::CloseCurrentPopup();
+            }
+
+            ImGui::EndPopup();
+        }
+
         DrawContents(client);
     }
+
     ImGui::End();
-
-
 }
 
 ImpyD::PanelBase::~PanelBase()
