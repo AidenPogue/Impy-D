@@ -7,6 +7,7 @@
 
 #include "Constants.hpp"
 #include "MainWindow.hpp"
+#include "Mpd/IdleClientWrapper.hpp"
 #include "PanelFactory/PanelRegistry.hpp"
 #define GL_SILENCE_DEPRECATION
 #if defined(IMGUI_IMPL_OPENGL_ES2)
@@ -138,6 +139,8 @@ int main(int, char**)
     MpdClientWrapper client = MpdClientWrapper(nullptr, 0);
     auto mainWindow = ImpyD::MainWindow();
 
+    auto idleTest = ImpyD::Mpd::IdleClientWrapper(nullptr, 0);
+
     while (!glfwWindowShouldClose(window))
     {
         // Poll and handle events (inputs, window resize, etc.)
@@ -163,14 +166,10 @@ int main(int, char**)
         if (show_demo_window)
             ImGui::ShowDemoWindow(&show_demo_window);
 
-        if (client.GetIsConnected())
+        auto events = idleTest.GetEventsAndClear();
+        if (events != 0)
         {
-            client.Poll();
-
-            if (client.HasIdleEvent())
-            {
-                mainWindow.SendIdleEventToPanels(client, client.GetIdleEventsAndClear());
-            }
+            mainWindow.SendIdleEventToPanels(client, events);
         }
 
         mainWindow.Draw(client);
