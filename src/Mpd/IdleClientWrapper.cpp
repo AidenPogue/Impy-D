@@ -5,8 +5,7 @@
 namespace ImpyD::Mpd
 {
     IdleClientWrapper::IdleClientWrapper(const char *host, int port):
-        host(host),
-        port(port),
+        connection(host, port),
         idleThread([this](std::stop_token st) { ThreadEntry(st); })
     {
     }
@@ -20,11 +19,11 @@ namespace ImpyD::Mpd
 
     void IdleClientWrapper::ThreadEntry(std::stop_token st)
     {
-        connection = mpd_connection_new(this->host, this->port, 0);
-        mpd_send_idle(connection);
+        auto conn = connection.GetConnection();
+        mpd_send_idle(conn);
 
         struct pollfd pfd;
-        pfd.fd = mpd_connection_get_fd(connection);
+        pfd.fd = mpd_connection_get_fd(conn);
         pfd.events = POLLIN;   // data available to read
         pfd.revents = 0;
 
@@ -34,15 +33,14 @@ namespace ImpyD::Mpd
 
             if (ret > 0 && pfd.revents & (POLLIN | POLLERR | POLLHUP))
             {
-                auto val = mpd_recv_idle(connection, false);
+                auto val = mpd_recv_idle(conn, false);
                 std::cout << "Thread: " << mpd_idle_name(val) << std::endl;
                 queuedEvents.fetch_or(val);
             }
 
-            mpd_send_idle(connection);
+            mpd_send_idle(conn);
         }
 
         std::cout << "Exiting idle thread." << std::endl;
-        mpd_connection_free(connection);
     }
 } // ImpyD

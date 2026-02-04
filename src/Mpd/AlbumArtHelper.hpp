@@ -19,7 +19,7 @@ namespace ImpyD::Mpd
          * @param tryReadPictureFirst If true, readpicture will be tried first, followed by albumart if it fails.
          * @return Pointer to the loaded texture.
          */
-        static GLuint LoadArtworkToGPU(const MpdClientWrapper& client, const std::string &uri, ImVec2 & dimensions, bool tryReadPictureFirst = false);
+        static GLuint LoadArtworkToGPU(MpdClientWrapper &client, const std::string &uri, ImVec2 & dimensions, bool tryReadPictureFirst = false);
     };
 }
 

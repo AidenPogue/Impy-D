@@ -3,6 +3,8 @@
 #include <atomic>
 #include <thread>
 #include <poll.h>
+
+#include "ConnectionManager.hpp"
 #include "MpdClientCache.hpp"
 
 namespace ImpyD::Mpd
@@ -15,10 +17,7 @@ namespace ImpyD::Mpd
         mpd_idle GetEventsAndClear();
 
     private:
-        const char * host;
-        const int port;
-
-        mpd_connection *connection;
+        ConnectionManager connection;
 
         std::jthread idleThread;
 

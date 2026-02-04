@@ -4,7 +4,7 @@
 
 namespace ImpyD::Mpd
 {
-    GLuint AlbumArtHelper::LoadArtworkToGPU(const MpdClientWrapper &client, const std::string &uri, ImVec2 &dimensions, bool tryReadPictureFirst)
+    GLuint AlbumArtHelper::LoadArtworkToGPU(MpdClientWrapper &client, const std::string &uri, ImVec2 &dimensions, bool tryReadPictureFirst)
     {
         auto data = tryReadPictureFirst ? client.ReadPictureSync(uri) : client.LoadAlbumArtSync(uri);
 

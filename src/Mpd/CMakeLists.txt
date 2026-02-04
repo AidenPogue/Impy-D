@@ -10,4 +10,5 @@ target_sources(im-mpd
         UriFilterGenerator.cpp
         AlbumArtHelper.cpp
         IdleClientWrapper.cpp
+        ConnectionManager.cpp
 )
