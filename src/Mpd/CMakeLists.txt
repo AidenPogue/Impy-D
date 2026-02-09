@@ -12,3 +12,5 @@ target_sources(im-mpd
         IdleClientWrapper.cpp
         ConnectionManager.cpp
 )
+
+add_subdirectory(ClientActions)
