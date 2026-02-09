@@ -10,12 +10,12 @@ namespace ImpyD::Mpd
         mpd_connection *connection = nullptr;
 
         const char *host;
-        int port;
+        unsigned port;
 
         void Connect();
 
         public:
-        ConnectionManager(const char *host, int port);
+        ConnectionManager(const char *host, unsigned port);
         ~ConnectionManager();
 
         bool CheckConnected() const;

@@ -17,7 +17,7 @@ void ImpyD::Mpd::ConnectionManager::Connect()
     connection = mpd_connection_new(host, port, 0);
 }
 
-ImpyD::Mpd::ConnectionManager::ConnectionManager(const char *host, int port)
+ImpyD::Mpd::ConnectionManager::ConnectionManager(const char *host, unsigned port)
 {
     this->host = host;
     this->port = port;
