@@ -10,7 +10,8 @@
 namespace ImpyD {
     class VolumeControl : public PanelBase, PanelFactory::RegisterPanel<VolumeControl>
     {
-    private:
+        std::future<MpdClientWrapper::MpdStatusPtr> statusFuture;
+
         int editingValue = -1;
         int currentValue = 0;
         void SetState(const MpdClientWrapper::MpdStatusPtr &status);

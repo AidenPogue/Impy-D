@@ -5,6 +5,7 @@
 #include "VolumeControl.hpp"
 
 #include "imgui.h"
+#include "../Utils.hpp"
 
 namespace ImpyD {
     void VolumeControl::SetState(const MpdClientWrapper::MpdStatusPtr &status)
@@ -19,6 +20,11 @@ namespace ImpyD {
 
     void VolumeControl::DrawContents(MpdClientWrapper &client)
     {
+        if (Utils::IsReady(statusFuture))
+        {
+            SetState(statusFuture.get());
+        }
+
         const auto oldValue = currentValue;
 
         ImGui::BeginDisabled(currentValue == -1);
@@ -48,14 +54,13 @@ namespace ImpyD {
     {
         if (event & (MPD_IDLE_MIXER | MPD_IDLE_PLAYER))
         {
-            SetState(client.GetStatus());
+            statusFuture = client.GetStatus();
         }
     }
 
     void VolumeControl::InitState(MpdClientWrapper &client)
     {
-        auto &status = client.GetStatus();
-        SetState(status);
+        statusFuture = client.GetStatus();
     }
 
     std::string VolumeControl::PanelName()

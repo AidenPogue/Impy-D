@@ -3,9 +3,12 @@
 #include "../Utils.hpp"
 #include "GLFW/glfw3.h"
 
+using namespace std::chrono_literals;
 
 void ImpyD::SeekBar::DrawContents(MpdClientWrapper &client)
 {
+    CheckFutures();
+
     bool disabled = currentState == MPD_STATE_STOP || currentState == MPD_STATE_UNKNOWN;
 
     ImGui::BeginDisabled(disabled);
@@ -42,7 +45,7 @@ void ImpyD::SeekBar::OnIdleEvent(MpdClientWrapper &client, mpd_idle event)
 {
     if (event & MPD_IDLE_PLAYER | MPD_IDLE_QUEUE)
     {
-        SetState(client.GetCurrentSong(), client.GetStatus());
+        GetFutures(client);
     }
 }
 
@@ -50,9 +53,7 @@ void ImpyD::SeekBar::InitState(MpdClientWrapper &client)
 {
     windowFlags = ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoScrollWithMouse;
 
-    auto &song = client.GetCurrentSong();
-    auto &status = client.GetStatus();
-    SetState(song, status);
+    GetFutures(client);
 }
 
 std::string ImpyD::SeekBar::PanelName()
@@ -60,7 +61,21 @@ std::string ImpyD::SeekBar::PanelName()
     return GetFactoryName();
 }
 
-void ImpyD::SeekBar::SetState(const MpdClientWrapper::MpdSongPtr &song, const MpdClientWrapper::MpdStatusPtr &status)
+void ImpyD::SeekBar::GetFutures(MpdClientWrapper &client)
+{
+    songFuture = client.GetCurrentSong();
+    statusFuture = client.GetStatus();
+}
+
+void ImpyD::SeekBar::CheckFutures()
+{
+    if (Utils::IsReady(songFuture) && Utils::IsReady(statusFuture))
+    {
+        SetState(songFuture.get(), statusFuture.get());
+    }
+}
+
+void ImpyD::SeekBar::SetState(const std::unique_ptr<MpdSongWrapper> &song, const MpdClientWrapper::MpdStatusPtr &status)
 {
     if (status == nullptr)
     {
@@ -68,10 +83,10 @@ void ImpyD::SeekBar::SetState(const MpdClientWrapper::MpdSongPtr &song, const Mp
     }
 
     currentState = mpd_status_get_state(status.get());
-    if (song != nullptr && (currentState == MPD_STATE_PLAY || currentState == MPD_STATE_PAUSE))
+    if (currentState == MPD_STATE_PLAY || currentState == MPD_STATE_PAUSE)
     {
         currentElapsedSeconds = mpd_status_get_elapsed_ms(status.get()) / 1000.0f;
-        currentDuration = mpd_song_get_duration_ms(song.get()) / 1000.0f;
+        currentDuration = song->GetDurationMs() / 1000.0f;
         elapsedSecondsSetAtTime = ImGui::GetTime();
     }
     else
