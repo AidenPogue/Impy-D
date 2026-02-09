@@ -1,18 +1,25 @@
 #pragma once
 
+#include <condition_variable>
 #include <deque>
 #include <functional>
+#include <future>
 #include <memory>
 #include <optional>
+#include <queue>
+#include <thread>
 #include <mpd/client.h>
 #include <mpd/async.h>
 
 #include "ArbitraryTagged.hpp"
+#include "ConnectionManager.hpp"
+#include "ConnectionManager.hpp"
 #include "MpdClientCache.hpp"
 #include "MpdIdleEventData.hpp"
 #include "MpdSongWrapper.hpp"
 #include "../TitleFormatting/ITagged.hpp"
 #include "IFilterGenerator.hpp"
+#include "ClientActions/IClientAction.hpp"
 
 class MpdClientWrapper
 {
@@ -22,63 +29,71 @@ public:
     using MpdStatusPtr = std::unique_ptr<mpd_status, decltype(&mpd_status_free)>;
 
 private:
-    const char *hostname;
-    unsigned int port;
+    //Async stuff
 
-    mpd_connection *connection = nullptr;
 
-    void ThrowIfNotConnected();
+    void EventLoop(std::stop_token st);
 
-    int Connect();
+    ImpyD::Mpd::ConnectionManager connectionManager;
 
-    std::vector<MpdSongWrapper> ReceiveSongList() const;
+    mutable std::mutex eventsMutex;
+    std::condition_variable eventAddedConvar;
+    std::queue<std::unique_ptr<ImpyD::ClientActions::IClientAction>> events;
+    std::jthread thread;
+    void EnqueueEvent(ImpyD::ClientActions::IClientAction *event);
 
-    void SetupFind(const std::vector<std::unique_ptr<ImpyD::Mpd::IFilterGenerator>> *filters, mpd_tag_type sort) const;
+    std::vector<char> LoadAlbumArtSyncImpl(const std::string &uri, bool (*sendFunction)(mpd_connection*, const char*, unsigned));
 
-    std::vector<char> LoadAlbumArtSyncImpl(const std::string &uri, bool (*sendFunction)(mpd_connection*, const char*, unsigned)) const;
-
+    static std::vector<std::unique_ptr<ImpyD::TitleFormatting::ITagged>> GetQueueImpl(mpd_connection *connection);
 public:
 
 
-    MpdClientWrapper(const char *hostname, unsigned int port, unsigned binaryLimit = 8192);
-    ~MpdClientWrapper();
+    MpdClientWrapper(const char *hostname, unsigned int port);
 
     [[nodiscard]] bool GetIsConnected() const;
 
     //Queue
-    const MpdSongPtr GetCurrentSong();
+    std::future<std::unique_ptr<MpdSongWrapper>> GetCurrentSong();
 
-    [[nodiscard]] std::vector<MpdSongWrapper> GetQueue() const;
-    bool ClearQueue();
-    bool RandomizeQueue();
+    [[nodiscard]] std::future<std::vector<std::unique_ptr<ImpyD::TitleFormatting::ITagged>>> GetQueue();
 
-    const MpdStatusPtr GetStatus();
-    //bool StartAlbumArt(const char *uri, )
+    void ClearQueue();
+
+    void RandomizeQueue();
+
+    std::future<MpdStatusPtr> GetStatus();
 
     //Playback
 
-    bool PlayCurrent();
-    bool PlayId(unsigned id);
-    bool Pause();
-    bool Toggle();
-    bool Next();
-    bool Prev();
-    bool SeekToSeconds(float s, bool relative);
+    void PlayCurrent();
 
-    bool SetVolume(int volume);
-    bool ChangeVolume(int by);
+    void PlayId(unsigned id);
+
+    void Pause();
+
+    void Toggle();
+
+    void Next();
+
+    void Prev();
+
+    void SeekToSeconds(float s, bool relative);
+
+    void SetVolume(int volume);
+
+    void ChangeVolume(int by);
 
     //Database
-    [[nodiscard]] std::vector<ImpyD::Mpd::ArbitraryTagged> List(
-        const std::vector<mpd_tag_type> *groups,
-        const std::vector<std::unique_ptr<ImpyD::Mpd::IFilterGenerator> > *filters = nullptr);
+    [[nodiscard]] std::future<std::vector<std::unique_ptr<ImpyD::TitleFormatting::ITagged>>> List(
+        std::vector<mpd_tag_type> groups,
+        std::vector<std::unique_ptr<ImpyD::Mpd::IFilterGenerator> > filters = {});
 
-    [[nodiscard]] std::vector<MpdSongWrapper> Find(const std::vector<std::unique_ptr<ImpyD::Mpd::IFilterGenerator>> *filters = nullptr, mpd_tag_type sort = MPD_TAG_UNKNOWN) const;
-    void FindAddQueue(const std::vector<std::unique_ptr<ImpyD::Mpd::IFilterGenerator>> *filters = nullptr, mpd_tag_type sort = MPD_TAG_UNKNOWN) const;
-
-
+    [[nodiscard]] std::future<std::vector<std::unique_ptr<ImpyD::TitleFormatting::ITagged>>> Find(
+        std::vector<std::unique_ptr<ImpyD::Mpd::IFilterGenerator> > filters,
+        mpd_tag_type sort = MPD_TAG_UNKNOWN);
+    void FindAddQueue(std::vector<std::unique_ptr<ImpyD::Mpd::IFilterGenerator>> filters, mpd_tag_type sort = MPD_TAG_UNKNOWN);
 
     //Artwork
-    std::vector<char> LoadAlbumArtSync(const std::string &uri) const;
-    std::vector<char> ReadPictureSync(const std::string &uri) const;
+    std::vector<char> LoadAlbumArtSync(const std::string &uri);
+    std::vector<char> ReadPictureSync(const std::string &uri);
 };

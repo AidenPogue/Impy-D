@@ -4,6 +4,7 @@
 
 #include <GL/gl.h>
 #include "Mpd/MpdClientWrapper.hpp"
+#include <future>
 
 namespace ImpyD::Utils
 {
@@ -24,6 +25,23 @@ namespace ImpyD::Utils
      * @param toUnion The tags that will be unioned with @p mainSet.
      */
     void TagSetUnion(std::vector<mpd_tag_type> &mainSet, std::vector<mpd_tag_type> &toUnion);
+
+    std::vector<std::unique_ptr<TitleFormatting::ITagged>> ReceiveSongList(mpd_connection *connection);
+
+    /**
+     * Checks if a future is ready without blocking.
+     * @tparam T
+     * @param future
+     * @return Whether the future is ready.
+     */
+    template <class T>
+    bool IsReady(const std::future<T> &future)
+    {
+        return future.valid() && future.wait_for(std::chrono::seconds(0)) == std::future_status::ready;
+    }
+
+
+
 }
 
 #endif //IM_MPD_UTILS_H

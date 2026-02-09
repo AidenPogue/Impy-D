@@ -71,3 +71,17 @@ void ImpyD::Utils::TagSetUnion(std::vector<mpd_tag_type> &mainSet, std::vector<m
         TagSetAppend(mainSet, toAdd);
     }
 }
+
+std::vector<std::unique_ptr<ImpyD::TitleFormatting::ITagged>> ImpyD::Utils::ReceiveSongList(mpd_connection *connection)
+{
+    std::vector<std::unique_ptr<TitleFormatting::ITagged>> list;
+
+    auto curSong = mpd_recv_song(connection);
+    while (curSong != nullptr)
+    {
+        list.emplace_back(std::make_unique<MpdSongWrapper>(curSong));
+        curSong = mpd_recv_song(connection);
+    }
+
+    return list;
+}
