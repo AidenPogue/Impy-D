@@ -4,7 +4,7 @@
 
 namespace ImpyD::Mpd
 {
-    IdleClientWrapper::IdleClientWrapper(const char *host, int port):
+    IdleClientWrapper::IdleClientWrapper(const char *host, unsigned port):
         connection(host, port),
         idleThread([this](std::stop_token st) { ThreadEntry(st); })
     {

@@ -12,7 +12,7 @@ namespace ImpyD::Mpd
     class IdleClientWrapper
     {
     public:
-        IdleClientWrapper(const char *host, int port);
+        IdleClientWrapper(const char *host, unsigned port);
 
         mpd_idle GetEventsAndClear();
 
