@@ -11,15 +11,23 @@ namespace ImpyD::Mpd
     class AlbumArtHelper
     {
     public:
+        class Result
+        {
+        public:
+            std::unique_ptr<unsigned char> data;
+            int width, height;
+        };
+
         /**
          * Tries to load the album art for a song using both albumart and readpicture, falling back on the other if the first fails.
          * @param client
          * @param uri Song URI
-         * @param dimensions
          * @param tryReadPictureFirst If true, readpicture will be tried first, followed by albumart if it fails.
-         * @return Pointer to the loaded texture.
+         * @return Decoded image data to be loaded to GPU.
          */
-        static GLuint LoadArtworkToGPU(MpdClientWrapper &client, const std::string &uri, ImVec2 & dimensions, bool tryReadPictureFirst = false);
+        static std::future<Result> LoadArtworkAsync(const MpdClientWrapper &client, const std::string &uri,
+                                                    bool tryReadPictureFirst = false);
+        
     };
 }
 
