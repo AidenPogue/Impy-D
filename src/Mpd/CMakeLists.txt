@@ -11,6 +11,7 @@ target_sources(im-mpd
         AlbumArtHelper.cpp
         IdleClientWrapper.cpp
         ConnectionManager.cpp
+        AlbumArtClient.cpp
 )
 
 add_subdirectory(ClientActions)
