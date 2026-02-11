@@ -25,6 +25,10 @@ ImpyD::Mpd::ConnectionManager::ConnectionManager(const char *host, unsigned port
     Connect();
 }
 
+ImpyD::Mpd::ConnectionManager::ConnectionManager(const ConnectionManager &existing) : ConnectionManager(existing.host, existing.port)
+{
+}
+
 ImpyD::Mpd::ConnectionManager::~ConnectionManager()
 {
     if (connection)

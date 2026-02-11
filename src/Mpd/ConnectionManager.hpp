@@ -16,6 +16,13 @@ namespace ImpyD::Mpd
 
         public:
         ConnectionManager(const char *host, unsigned port);
+
+        /**
+         * Creates a new connection using the host and port of an existing one.
+         * @param existing
+         */
+        explicit ConnectionManager(const ConnectionManager &existing);
+
         ~ConnectionManager();
 
         bool CheckConnected() const;
