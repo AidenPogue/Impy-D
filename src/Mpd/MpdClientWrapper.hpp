@@ -30,8 +30,6 @@ public:
 
 private:
     //Async stuff
-
-
     void EventLoop(std::stop_token st);
 
     ImpyD::Mpd::ConnectionManager connectionManager;
@@ -42,8 +40,6 @@ private:
     std::jthread thread;
     void EnqueueEvent(ImpyD::ClientActions::IClientAction *event);
 
-    std::vector<char> LoadAlbumArtSyncImpl(const std::string &uri, bool (*sendFunction)(mpd_connection*, const char*, unsigned));
-
     static std::vector<std::unique_ptr<ImpyD::TitleFormatting::ITagged>> GetQueueImpl(mpd_connection *connection);
 public:
 
@@ -51,6 +47,8 @@ public:
     MpdClientWrapper(const char *hostname, unsigned int port);
 
     [[nodiscard]] bool GetIsConnected() const;
+
+    const ImpyD::Mpd::ConnectionManager &GetConnectionManager() const;
 
     //Queue
     std::future<std::unique_ptr<MpdSongWrapper>> GetCurrentSong();
@@ -92,8 +90,4 @@ public:
         std::vector<std::unique_ptr<ImpyD::Mpd::IFilterGenerator> > filters,
         mpd_tag_type sort = MPD_TAG_UNKNOWN);
     void FindAddQueue(std::vector<std::unique_ptr<ImpyD::Mpd::IFilterGenerator>> filters, mpd_tag_type sort = MPD_TAG_UNKNOWN);
-
-    //Artwork
-    std::vector<char> LoadAlbumArtSync(const std::string &uri);
-    std::vector<char> ReadPictureSync(const std::string &uri);
 };

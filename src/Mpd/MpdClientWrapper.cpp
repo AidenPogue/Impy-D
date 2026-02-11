@@ -74,6 +74,11 @@ bool MpdClientWrapper::GetIsConnected() const
     return connectionManager.CheckConnected();
 }
 
+const ImpyD::Mpd::ConnectionManager & MpdClientWrapper::GetConnectionManager() const
+{
+    return connectionManager;
+}
+
 std::future<std::unique_ptr<MpdSongWrapper>> MpdClientWrapper::GetCurrentSong()
 {
     auto action = new NoParameterPromiseAction<std::unique_ptr<MpdSongWrapper>>(
@@ -193,57 +198,6 @@ std::future<std::vector<std::unique_ptr<ImpyD::TitleFormatting::ITagged>>> MpdCl
 void MpdClientWrapper::FindAddQueue(std::vector<std::unique_ptr<ImpyD::Mpd::IFilterGenerator>> filters, mpd_tag_type sort)
 {
     EnqueueEvent(new FindAction(std::move(filters), sort, true));
-}
-
-
-std::vector<char> MpdClientWrapper::LoadAlbumArtSync(const std::string &uri)
-{
-    return LoadAlbumArtSyncImpl(uri, &mpd_send_albumart);
-}
-
-std::vector<char> MpdClientWrapper::ReadPictureSync(const std::string &uri)
-{
-    return LoadAlbumArtSyncImpl(uri, &mpd_send_readpicture);
-}
-
-std::vector<char> MpdClientWrapper::LoadAlbumArtSyncImpl(const std::string &uri, bool (*sendFunction) (mpd_connection *, const char *, unsigned))
-{
-    auto connection = connectionManager.GetConnection();
-    sendFunction(connection, uri.c_str(), 0);
-    auto sizePair = mpd_recv_pair(connection);
-
-    if (!sizePair)
-    {
-        mpd_connection_clear_error(connection);
-        return {};
-    }
-
-    auto buffer = std::vector<char>();
-    buffer.resize(std::stoi(sizePair->value));
-    mpd_return_pair(connection, sizePair);
-
-    int read = 0;
-    int position = 0;
-
-    do
-    {
-        read = mpd_recv_albumart(connection, buffer.data() + position, buffer.capacity());
-
-        if (read == -1)
-        {
-            mpd_connection_clear_error(connection);
-            return {};
-        }
-
-        mpd_response_finish(connection);
-        position += read;
-        if (read > 0)
-        {
-            sendFunction(connection, uri.c_str(), position);
-        }
-    } while (read > 0);
-
-    return buffer;
 }
 
 std::future<MpdClientWrapper::MpdStatusPtr> MpdClientWrapper::GetStatus()
