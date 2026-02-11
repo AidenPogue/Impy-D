@@ -8,7 +8,15 @@
 
 namespace ImpyD::Utils
 {
-    bool LoadTextureFromMemory(const void* data, size_t data_size, GLuint* out_texture, int* out_width, int* out_height);
+    /**
+     * Uploads a raw RGBA image to the gpu.
+     * @param data
+     * @param width
+     * @param height
+     * @param out_texture
+     * @return
+     */
+    bool UploadTexture(const void* data, int width, int height, GLuint* out_texture);
 
 
     std::string SecondsToDurationString(float seconds);
