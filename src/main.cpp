@@ -118,11 +118,11 @@ int main(int, char**)
     ImGui_ImplOpenGL3_Init(glsl_version);
 
     //TESTING!
-    style.FontSizeBase = 16.0f;
-    io.Fonts->AddFontFromFileTTF("/usr/share/fonts/adwaita-sans-fonts/AdwaitaSans-Regular.ttf");
-    ImFontConfig config;
-    config.MergeMode = true;
-    io.Fonts->AddFontFromFileTTF("/usr/share/fonts/google-droid-sans-fonts/DroidSansJapanese.ttf", 0, &config);
+    // style.FontSizeBase = 16.0f;
+    // io.Fonts->AddFontFromFileTTF("/usr/share/fonts/adwaita-sans-fonts/AdwaitaSans-Regular.ttf");
+    // ImFontConfig config;
+    // config.MergeMode = true;
+    // io.Fonts->AddFontFromFileTTF("/usr/share/fonts/google-droid-sans-fonts/DroidSansJapanese.ttf", 0, &config);
 
     //io.Fonts->AddFontFromFileTTF("../../misc/fonts/DroidSans.ttf");
     //io.Fonts->AddFontFromFileTTF("../../misc/fonts/Roboto-Medium.ttf");

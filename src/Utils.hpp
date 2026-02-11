@@ -4,10 +4,19 @@
 
 #include <GL/gl.h>
 #include "Mpd/MpdClientWrapper.hpp"
+#include <future>
 
 namespace ImpyD::Utils
 {
-    bool LoadTextureFromMemory(const void* data, size_t data_size, GLuint* out_texture, int* out_width, int* out_height);
+    /**
+     * Uploads a raw RGBA image to the gpu.
+     * @param data
+     * @param width
+     * @param height
+     * @param out_texture
+     * @return
+     */
+    bool UploadTexture(const void* data, int width, int height, GLuint* out_texture);
 
 
     std::string SecondsToDurationString(float seconds);
@@ -24,6 +33,23 @@ namespace ImpyD::Utils
      * @param toUnion The tags that will be unioned with @p mainSet.
      */
     void TagSetUnion(std::vector<mpd_tag_type> &mainSet, std::vector<mpd_tag_type> &toUnion);
+
+    std::vector<std::unique_ptr<TitleFormatting::ITagged>> ReceiveSongList(mpd_connection *connection);
+
+    /**
+     * Checks if a future is ready without blocking.
+     * @tparam T
+     * @param future
+     * @return Whether the future is ready.
+     */
+    template <class T>
+    bool IsReady(const std::future<T> &future)
+    {
+        return future.valid() && future.wait_for(std::chrono::seconds(0)) == std::future_status::ready;
+    }
+
+
+
 }
 
 #endif //IM_MPD_UTILS_H

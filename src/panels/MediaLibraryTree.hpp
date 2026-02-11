@@ -13,6 +13,8 @@ namespace ImpyD
     private:
         class TreeItem
         {
+
+            std::future<std::vector<std::unique_ptr<TitleFormatting::ITagged>>> childrenFuture;
         public:
             TreeItem(TreeItem *parent, std::unique_ptr<TitleFormatting::ITagged> taggedItem, int layerIndex, const std::vector<LibraryLayer> &layers);
 
@@ -23,13 +25,12 @@ namespace ImpyD
             const int layerIndex;
 
             std::vector<std::unique_ptr<Mpd::IFilterGenerator>> GetAllFilters();
-
-
+            void RequestChildren(MpdClientWrapper &client);
+            bool WaitingForChildren();
+            void ProcessFuture();
         };
 
         std::vector<TreeItem> rootItems;
-
-        void FetchChildren(MpdClientWrapper &client, TreeItem &item);
 
     public:
         IMPYD_REGISTER_PANEL_FactoryFunc(MediaLibraryTree);

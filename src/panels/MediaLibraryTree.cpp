@@ -51,41 +51,41 @@ namespace ImpyD {
         return allFilters;
     }
 
-    void MediaLibraryTree::FetchChildren(MpdClientWrapper &client, TreeItem &item)
+    void MediaLibraryTree::TreeItem::RequestChildren(MpdClientWrapper &client)
     {
-        if (!item.children)
+        children = nullptr;
+
+        auto childIsBaseLayer = layerIndex == testLayers.size() - 2;
+
+        auto allTags = testLayers[layerIndex + 1].GetUsedTags();
+
+        auto filters = GetAllFilters();
+
+        childrenFuture = childIsBaseLayer ? client.Find(std::move(filters), allTags.front()) : client.List(allTags, std::move(filters));
+    }
+
+    bool MediaLibraryTree::TreeItem::WaitingForChildren()
+    {
+        return childrenFuture.valid();
+    }
+
+    void MediaLibraryTree::TreeItem::ProcessFuture()
+    {
+        if (Utils::IsReady(childrenFuture))
         {
-            item.children = std::make_unique<std::vector<TreeItem>>();
-        }
-        item.children->clear();
-
-        auto childIsBaseLayer = item.layerIndex == testLayers.size() - 2;
-
-        auto allTags = testLayers[item.layerIndex + 1].GetUsedTags();
-
-        auto filters = item.GetAllFilters();
-
-
-        //This seems wrong.
-        if (childIsBaseLayer)
-        {
-            auto songs = client.Find(&filters, allTags.front());
-            for (auto &song : songs)
+            if (!children)
             {
-                auto copy = std::make_unique<MpdSongWrapper>(song);
-                item.children->emplace_back(TreeItem(&item, std::move(copy), item.layerIndex + 1, testLayers));
+                children = std::make_unique<std::vector<TreeItem>>();
+            }
+            children->clear();
+
+            auto items = childrenFuture.get();
+
+            for (auto &item : items)
+            {
+                children->emplace_back(TreeItem(this, std::move(item), layerIndex + 1, testLayers));
             }
         }
-        else
-        {
-            auto listing = client.List(&allTags, &filters);
-            for (auto &listItem : listing)
-            {
-                auto copy = std::make_unique<Mpd::ArbitraryTagged>(listItem);
-                item.children->emplace_back(TreeItem(&item, std::move(copy), item.layerIndex + 1, testLayers));
-            }
-        }
-
     }
 
     MediaLibraryTree::MediaLibraryTree(int panelId): PanelBase(panelId)
@@ -122,7 +122,7 @@ namespace ImpyD {
                     client.ClearQueue();
                 }
 
-                client.FindAddQueue(&filters);
+                client.FindAddQueue(std::move(filters));
 
                 if (send)
                 {
@@ -143,9 +143,9 @@ namespace ImpyD {
             return;
         }
 
-        if (!item.children)
+        if (!item.children && !item.WaitingForChildren())
         {
-            FetchChildren(client, item);
+            item.RequestChildren(client);
         }
 
         int flags = ImGuiTreeNodeFlags_SpanFullWidth | ImGuiTreeNodeFlags_DrawLinesToNodes;
@@ -155,35 +155,43 @@ namespace ImpyD {
             flags |= ImGuiTreeNodeFlags_Leaf;
         }
 
-        for (int i = 0; i < item.children->size(); i++)
+        if (!item.WaitingForChildren())
         {
-            auto &childItem = item.children->at(i);
-
-            ImGui::PushID(i);
-
-            const auto shouldExpandItem = item.children->size() == 1 && testLayers[item.layerIndex + 1].expandIfNoSiblings;
-
-            if (shouldExpandItem)
+            for (int i = 0; i < item.children->size(); i++)
             {
-                DrawChildren(client, childItem);
-            }
-            else
-            {
-                auto nodeOpen = ImGui::TreeNodeEx(childItem.content.c_str(), flags);
-                //Only draw context menu here because this is the only spot this method actually draws.
-                DrawTreeItemContextMenu(client, childItem);
-                if (nodeOpen)
+                auto &childItem = item.children->at(i);
+
+                ImGui::PushID(i);
+
+                const auto shouldExpandItem = item.children->size() == 1 && testLayers[item.layerIndex + 1].expandIfNoSiblings;
+
+                if (shouldExpandItem)
                 {
-                    if (item.children)
-                    {
-                        DrawChildren(client, childItem);
-                    }
-
-                    ImGui::TreePop();
+                    DrawChildren(client, childItem);
                 }
-            }
+                else
+                {
+                    auto nodeOpen = ImGui::TreeNodeEx(childItem.content.c_str(), flags);
+                    //Only draw context menu here because this is the only spot this method actually draws.
+                    DrawTreeItemContextMenu(client, childItem);
+                    if (nodeOpen)
+                    {
+                        if (item.children)
+                        {
+                            DrawChildren(client, childItem);
+                        }
 
-            ImGui::PopID();
+                        ImGui::TreePop();
+                    }
+                }
+
+                ImGui::PopID();
+            }
+        }
+        else
+        {
+            item.ProcessFuture();
+            ImGui::Text("Fetching...");
         }
     }
 
@@ -191,12 +199,12 @@ namespace ImpyD {
     {
         if (event & MPD_IDLE_DATABASE)
         {
-            FetchChildren(client, rootItems[0]);
+            rootItems.front().RequestChildren(client);
         }
     }
 
     void MediaLibraryTree::InitState(MpdClientWrapper &client)
     {
-        FetchChildren(client, rootItems[0]);
+        rootItems.front().RequestChildren(client);
     }
 } // ImMPD

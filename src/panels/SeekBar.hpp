@@ -17,7 +17,13 @@ namespace ImpyD
 
         mpd_state currentState = MPD_STATE_STOP;
 
-        void SetState(const MpdClientWrapper::MpdSongPtr &song, const MpdClientWrapper::MpdStatusPtr &status);
+        std::future<std::unique_ptr<MpdSongWrapper>> songFuture;
+        std::future<MpdClientWrapper::MpdStatusPtr> statusFuture;
+
+        void GetFutures(MpdClientWrapper &client);
+        void CheckFutures();
+
+        void SetState(const std::unique_ptr<MpdSongWrapper> &song, const MpdClientWrapper::MpdStatusPtr &status);
 
     public:
         IMPYD_REGISTER_PANEL_FactoryFunc(SeekBar)

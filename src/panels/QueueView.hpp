@@ -12,14 +12,15 @@ namespace ImpyD
 {
     class QueueView : public PanelBase, PanelFactory::RegisterPanel<QueueView>
     {
-    private:
-        std::vector<MpdSongWrapper> currentQueue;
+        std::future<std::vector<std::unique_ptr<TitleFormatting::ITagged>>> queueFuture;
+
+        std::vector<std::unique_ptr<TitleFormatting::ITagged>> currentQueue;
         std::vector<std::vector<std::string>> cellValueCache;
         unsigned currentSongId = 0;
 
-        void UpdateQueue(MpdClientWrapper &client);
+        void UpdateQueue(std::vector<std::unique_ptr<TitleFormatting::ITagged>> songs);
 
-        static void CacheRowIfNeeded(MpdSongWrapper &song, const std::vector<SongTableColumn> &columns, std::vector<std::string> &rowCache);
+        static void CacheRowIfNeeded(std::unique_ptr<TitleFormatting::ITagged> &song, const std::vector<SongTableColumn> &columns, std::vector<std::string> &rowCache);
 
     public:
         IMPYD_REGISTER_PANEL_FactoryFunc(QueueView)
