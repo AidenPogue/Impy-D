@@ -3,12 +3,7 @@
 //
 #include "Utils.hpp"
 
-#include <assert.h>
 #include <chrono>
-
-#include "imgui.h"
-#include "stb_image.h"
-
 
 bool ImpyD::Utils::UploadTexture(const void* data, int width, int height, GLuint* out_texture)
 {

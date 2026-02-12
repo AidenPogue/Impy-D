@@ -4,7 +4,7 @@
 
 #include "AlbumArtClient.hpp"
 #include "../Utils.hpp"
-#include "../stb_image.h"
+#include <stb_image.h>
 
 namespace ImpyD::Mpd
 {
