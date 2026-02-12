@@ -8,6 +8,8 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 add_executable(im-mpd)
 
+target_include_directories(im-mpd PRIVATE include)
+
 set_property(TARGET im-mpd PROPERTY CXX_STANDARD 20)
 
 add_subdirectory(src)
