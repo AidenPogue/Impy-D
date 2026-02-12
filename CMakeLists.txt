@@ -29,6 +29,7 @@ target_sources(imgui
     imgui/imgui_draw.cpp
     imgui/imgui_tables.cpp
     imgui/imgui_widgets.cpp
+    imgui/misc/cpp/imgui_stdlib.cpp
 
     imgui/backends/imgui_impl_glfw.cpp
     imgui/backends/imgui_impl_opengl3.cpp
@@ -40,6 +41,7 @@ target_sources(imgui
       imgui
     FILES
       imgui/imgui.h
+      imgui/misc/cpp/imgui_stdlib.h
       imgui/backends/imgui_impl_glfw.h
       imgui/backends/imgui_impl_opengl3.h
 )
