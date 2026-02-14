@@ -59,10 +59,10 @@ namespace ImpyD
         }
     }
 
-    void MainWindow::CreatePanelById(MpdClientWrapper &client, const std::string &id)
+    void MainWindow::CreatePanelById(Context &context, const std::string &id)
     {
         auto panel = PanelFactory::Registry::CreatePanelById(id, nextPanelId++);
-        panel->InitState(client);
+        panel->InitState(context);
 
         if (panel->GetPanelFlags() & PanelFlags_DrawEarly)
         {
@@ -74,11 +74,11 @@ namespace ImpyD
         }
     }
 
-    void MainWindow::Draw(MpdClientWrapper &client)
+    void MainWindow::Draw(Context &context)
     {
         for (const auto &id : panelsToCreate)
         {
-            CreatePanelById(client, id);
+            CreatePanelById(context, id);
         }
 
         panelsToCreate.clear();
@@ -88,7 +88,7 @@ namespace ImpyD
         DrawFileMenu();
         DrawLayoutMenu();
 
-        if (!client.GetIsConnected())
+        if (!context.GetClient().GetIsConnected())
         {
             ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(2, 2));
             if (ImGui::BeginViewportSideBar("SatusBar", ImGui::GetWindowViewport(), ImGuiDir_Down, 24,  ImGuiWindowFlags_NoScrollWithMouse | ImGuiWindowFlags_NoScrollbar))
@@ -104,15 +104,15 @@ namespace ImpyD
 
         for (const auto &panel : panels)
         {
-            panel->Draw(client);
+            panel->Draw(context);
         }
     }
 
-    void MainWindow::SendIdleEventToPanels(MpdClientWrapper &client, mpd_idle event) const
+    void MainWindow::SendIdleEventToPanels(Context &context, mpd_idle event) const
     {
         for (const auto &panel : panels)
         {
-            panel->OnIdleEvent(client, event);
+            panel->OnIdleEvent(context, event);
         }
     }
 } // ImpyD

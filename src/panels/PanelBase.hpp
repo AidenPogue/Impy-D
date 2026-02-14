@@ -2,7 +2,7 @@
 #include "imgui.h"
 #include "PanelFlags.hpp"
 #include "../Mpd/MpdClientWrapper.hpp"
-#include "../Mpd/MpdIdleEventData.hpp"
+#include "../Context.hpp"
 #include <string>
 
 namespace ImpyD
@@ -17,7 +17,7 @@ namespace ImpyD
     protected:
         const int panelId = -1;
         ImGuiWindowFlags windowFlags = ImGuiWindowFlags_None;
-        virtual void DrawContents(MpdClientWrapper &client) {}
+        virtual void DrawContents(Context &context) {}
 
         PanelBase(int panelId);
 
@@ -38,27 +38,27 @@ namespace ImpyD
          */
         void SetTitle(const std::string &title);
 
-        void Draw(MpdClientWrapper &client);
+        void Draw(Context &context);
 
         virtual ~PanelBase();
 
         /**
          * Called when any idle event is recieved from the client.
-         * @param client The client that produced the idle event.
+         * @param context The client that produced the idle event.
          * @param event Data for the idle event.
          */
-        virtual void OnIdleEvent(MpdClientWrapper &client, mpd_idle event) {}
+        virtual void OnIdleEvent(Context &context, mpd_idle event) {}
 
         /**
          * Called once immediately after creating the panel.
-         * @param client The connected client.
+         * @param context The connected client.
          */
-        virtual void InitState(MpdClientWrapper &client) {}
+        virtual void InitState(Context &context) {}
 
         /**
          * Draws context menu items for this panel, if any.
-         * @param client The connected client.
+         * @param context The connected client.
          */
-        virtual void DrawContextMenu(MpdClientWrapper &client);
+        virtual void DrawContextMenu(Context &context);
     };
 } // namespace ImMPD

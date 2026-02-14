@@ -20,7 +20,7 @@ void ImMPD::SimpleAlbumArt::SetArtwork(const ImpyD::Mpd::AlbumArtHelper::Result 
     currentArtAspect = (float)img.width / img.height;
 }
 
-void ImMPD::SimpleAlbumArt::CheckFutures(MpdClientWrapper &client)
+void ImMPD::SimpleAlbumArt::CheckFutures(ImpyD::Context &context)
 {
     if (ImpyD::Utils::IsReady(artFuture))
     {
@@ -39,7 +39,7 @@ void ImMPD::SimpleAlbumArt::CheckFutures(MpdClientWrapper &client)
             return;
         }
         currentSongUri = newUri;
-        artFuture = ImpyD::Mpd::AlbumArtHelper::LoadArtworkAsync(client, currentSongUri, false);
+        artFuture = ImpyD::Mpd::AlbumArtHelper::LoadArtworkAsync(context.GetClient(), currentSongUri, false);
     }
 }
 
@@ -48,9 +48,9 @@ std::string ImMPD::SimpleAlbumArt::PanelName()
     return GetFactoryName();
 }
 
-void ImMPD::SimpleAlbumArt::DrawContents(MpdClientWrapper &client)
+void ImMPD::SimpleAlbumArt::DrawContents(ImpyD::Context &context)
 {
-    CheckFutures(client);
+    CheckFutures(context);
 
     //Can we do this?
     if (currentArtTexture)
@@ -91,26 +91,26 @@ void ImMPD::SimpleAlbumArt::DrawContents(MpdClientWrapper &client)
     }
 }
 
-void ImMPD::SimpleAlbumArt::RequestCurrentArtwork(MpdClientWrapper &client)
+void ImMPD::SimpleAlbumArt::RequestCurrentArtwork(ImpyD::Context &context)
 {
-    songFuture = client.GetCurrentSong();
+    songFuture = context.GetClient().GetCurrentSong();
     artFuture = {};
 }
 
-void ImMPD::SimpleAlbumArt::OnIdleEvent(MpdClientWrapper &client, mpd_idle event)
+void ImMPD::SimpleAlbumArt::OnIdleEvent(ImpyD::Context &context, mpd_idle event)
 {
     if (event & MPD_IDLE_PLAYER)
     {
-        RequestCurrentArtwork(client);
+        RequestCurrentArtwork(context);
     }
 }
 
-void ImMPD::SimpleAlbumArt::InitState(MpdClientWrapper &client)
+void ImMPD::SimpleAlbumArt::InitState(ImpyD::Context &context)
 {
-    RequestCurrentArtwork(client);
+    RequestCurrentArtwork(context);
 }
 
-void ImMPD::SimpleAlbumArt::DrawContextMenu(MpdClientWrapper &client)
+void ImMPD::SimpleAlbumArt::DrawContextMenu(ImpyD::Context &context)
 {
     ImGui::MenuItem("Preserve Aspect Ratio", nullptr, &preserveAspectRatio);
     if (ImGui::BeginMenu("Load Artwork When..."))

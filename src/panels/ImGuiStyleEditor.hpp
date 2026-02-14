@@ -15,7 +15,7 @@ namespace ImpyD
         std::string PanelName() override;
 
     protected:
-        void DrawContents(MpdClientWrapper &client) override;
+        void DrawContents(Context &context) override;
     };
 }
 

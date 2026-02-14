@@ -22,13 +22,13 @@ namespace ImpyD {
 
         VolumeControl(int panelId);
 
-        void DrawContents(MpdClientWrapper &client) override;
+        void DrawContents(Context &context) override;
 
         ~VolumeControl() override;
 
-        void OnIdleEvent(MpdClientWrapper &client, mpd_idle event) override;
+        void OnIdleEvent(Context &context, mpd_idle event) override;
 
-        void InitState(MpdClientWrapper &client) override;
+        void InitState(Context &context) override;
 
         std::string PanelName() override;
     };

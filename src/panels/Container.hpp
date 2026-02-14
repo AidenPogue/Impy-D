@@ -18,7 +18,7 @@ namespace ImpyD
 
         Container(int panelId) : PanelBase(panelId) {}
 
-        void DrawContents(MpdClientWrapper &client) override;
+        void DrawContents(Context &context) override;
 
         std::string PanelName() override;
 

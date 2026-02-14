@@ -45,12 +45,14 @@ namespace ImpyD
         }
     }
 
-    void QueueView::DrawContents(MpdClientWrapper &client)
+    void QueueView::DrawContents(Context &context)
     {
         if (Utils::IsReady(queueFuture))
         {
             UpdateQueue(queueFuture.get());
         }
+
+        auto &client = context.GetClient();
 
         //Buttons
         if (ImGui::Button("Clear"))
@@ -126,27 +128,27 @@ namespace ImpyD
         }
     }
 
-    void QueueView::SetState(MpdClientWrapper &client)
+    void QueueView::SetState(Context &context)
     {
         //currentSongId = mpd_status_get_song_id(client.GetStatus().get());
     }
 
-    void QueueView::OnIdleEvent(MpdClientWrapper &client, mpd_idle event)
+    void QueueView::OnIdleEvent(Context &context, mpd_idle event)
     {
         if (event & MPD_IDLE_QUEUE)
         {
-            queueFuture = client.GetQueue();
+            queueFuture = context.GetClient().GetQueue();
         }
         if (event & MPD_IDLE_PLAYER)
         {
-            SetState(client);
+            SetState(context);
         }
     }
 
-    void QueueView::InitState(MpdClientWrapper &client)
+    void QueueView::InitState(Context &context)
     {
-        queueFuture = client.GetQueue();
-        SetState(client);
+        queueFuture = context.GetClient().GetQueue();
+        SetState(context);
     }
 
     std::string QueueView::PanelName()

@@ -19,7 +19,7 @@ void ImpyD::PanelBase::SetTitle(const std::string &title)
     this->title = title + "###" + std::to_string(panelId);
 }
 
-void ImpyD::PanelBase::Draw(MpdClientWrapper &client)
+void ImpyD::PanelBase::Draw(Context &context)
 {
     //Cant do this in constructor because PanelName is pure virtual
     if (title.empty())
@@ -34,10 +34,10 @@ void ImpyD::PanelBase::Draw(MpdClientWrapper &client)
             if (ImGui::MenuItem("Change Title"))
             {
             }
-            DrawContextMenu(client);
+            DrawContextMenu(context);
             ImGui::EndPopup();
         }
-        DrawContents(client);
+        DrawContents(context);
     }
     ImGui::End();
 
@@ -49,5 +49,5 @@ ImpyD::PanelBase::~PanelBase()
     printf("Desctrocota\n");
 }
 
-void ImpyD::PanelBase::DrawContextMenu(MpdClientWrapper &client)
+void ImpyD::PanelBase::DrawContextMenu(Context &context)
 { }
