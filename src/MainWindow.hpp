@@ -16,6 +16,8 @@ namespace ImpyD
         std::list<std::unique_ptr<PanelBase>> panels;
         int nextPanelId = 0;
 
+        std::future<std::unique_ptr<MpdSongWrapper>> songFuture;
+
         std::vector<std::string> panelsToCreate;
 
         void DrawLayoutMenu();
@@ -23,12 +25,14 @@ namespace ImpyD
 
         void CreatePanelById(Context &context, const std::string &id);
 
+        void SetWindowTitle(Context &context);
+
     public:
         MainWindow();
 
         void Draw(Context &context);
 
-        void SendIdleEventToPanels(Context &context, mpd_idle event) const;
+        void SendIdleEventToPanels(Context &context, mpd_idle event);
     };
 } // ImpyD
 

@@ -1,7 +1,11 @@
 #include "MainWindow.hpp"
 
+#include <GLFW/glfw3.h>
+
 #include "imgui_internal.h"
+#include "Utils.hpp"
 #include "PanelFactory/PanelRegistry.hpp"
+#include "TitleFormatting/TitleFormatter.hpp"
 
 namespace ImpyD
 {
@@ -74,8 +78,19 @@ namespace ImpyD
         }
     }
 
+    void MainWindow::SetWindowTitle(Context &context)
+    {
+        auto s = songFuture.get();
+        glfwSetWindowTitle(glfwGetCurrentContext(), TitleFormatting::FormatITagged(*s, context.GetConfig().interface.windowTitleFormat).c_str());
+    }
+
     void MainWindow::Draw(Context &context)
     {
+        if (Utils::IsReady(songFuture))
+        {
+            SetWindowTitle(context);
+        }
+
         for (const auto &id : panelsToCreate)
         {
             CreatePanelById(context, id);
@@ -108,8 +123,13 @@ namespace ImpyD
         }
     }
 
-    void MainWindow::SendIdleEventToPanels(Context &context, mpd_idle event) const
+    void MainWindow::SendIdleEventToPanels(Context &context, mpd_idle event)
     {
+        if (event & MPD_IDLE_PLAYER)
+        {
+            songFuture = context.GetClient().GetCurrentSong();
+        }
+
         for (const auto &panel : panels)
         {
             panel->OnIdleEvent(context, event);
