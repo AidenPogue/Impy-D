@@ -19,8 +19,10 @@ struct PlaybackButton
 
 ImpyD::PlaybackButtonsPanel::~PlaybackButtonsPanel() = default;
 
-void ImpyD::PlaybackButtonsPanel::DrawContents(MpdClientWrapper &client)
+void ImpyD::PlaybackButtonsPanel::DrawContents(Context &context)
 {
+    auto &client = context.GetClient();
+
     if (ImGui::Button("|<<"))
     {
         client.Prev();

@@ -20,7 +20,7 @@ namespace ImMPD
 
         void SetArtwork(const ImpyD::Mpd::AlbumArtHelper::Result &img);
 
-        void CheckFutures(MpdClientWrapper &client);
+        void CheckFutures(ImpyD::Context &context);
 
     public:
         explicit SimpleAlbumArt(int panelId)
@@ -34,15 +34,15 @@ namespace ImMPD
         std::string PanelName() override;
 
     protected:
-        void DrawContents(MpdClientWrapper &client) override;
+        void DrawContents(ImpyD::Context &context) override;
 
-        void RequestCurrentArtwork(MpdClientWrapper &client);
+        void RequestCurrentArtwork(ImpyD::Context &context);
 
     public:
-        void OnIdleEvent(MpdClientWrapper &client, mpd_idle event) override;
+        void OnIdleEvent(ImpyD::Context &context, mpd_idle event) override;
 
-        void InitState(MpdClientWrapper &client) override;
+        void InitState(ImpyD::Context &context) override;
 
-        void DrawContextMenu(MpdClientWrapper &client) override;
+        void DrawContextMenu(ImpyD::Context &context) override;
     };
 }

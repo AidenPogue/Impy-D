@@ -9,6 +9,7 @@ target_sources(im-mpd
         MainWindow.cpp
         Config.cpp
         ConfigLoader.cpp
+        Context.cpp
 )
 
 add_subdirectory(panels)

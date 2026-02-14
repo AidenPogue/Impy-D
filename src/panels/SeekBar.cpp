@@ -5,7 +5,7 @@
 
 using namespace std::chrono_literals;
 
-void ImpyD::SeekBar::DrawContents(MpdClientWrapper &client)
+void ImpyD::SeekBar::DrawContents(Context &context)
 {
     CheckFutures();
 
@@ -27,10 +27,8 @@ void ImpyD::SeekBar::DrawContents(MpdClientWrapper &client)
 
     if (ImGui::IsItemDeactivatedAfterEdit())
     {
-        printf("Seeking to %f\n", currentSeek);
-
-                client.SeekToSeconds(currentSeek, false);
-            }
+        context.GetClient().SeekToSeconds(currentSeek, false);
+    }
 
     if (!ImGui::IsItemActive())
     {
@@ -41,19 +39,19 @@ void ImpyD::SeekBar::DrawContents(MpdClientWrapper &client)
 
 }
 
-void ImpyD::SeekBar::OnIdleEvent(MpdClientWrapper &client, mpd_idle event)
+void ImpyD::SeekBar::OnIdleEvent(Context &context, mpd_idle event)
 {
     if (event & MPD_IDLE_PLAYER | MPD_IDLE_QUEUE)
     {
-        GetFutures(client);
+        GetFutures(context);
     }
 }
 
-void ImpyD::SeekBar::InitState(MpdClientWrapper &client)
+void ImpyD::SeekBar::InitState(Context &context)
 {
     windowFlags = ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoScrollWithMouse;
 
-    GetFutures(client);
+    GetFutures(context);
 }
 
 std::string ImpyD::SeekBar::PanelName()
@@ -61,8 +59,9 @@ std::string ImpyD::SeekBar::PanelName()
     return GetFactoryName();
 }
 
-void ImpyD::SeekBar::GetFutures(MpdClientWrapper &client)
+void ImpyD::SeekBar::GetFutures(Context &context)
 {
+    auto &client = context.GetClient();
     songFuture = client.GetCurrentSong();
     statusFuture = client.GetStatus();
 }

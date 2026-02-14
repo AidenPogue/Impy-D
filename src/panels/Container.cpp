@@ -6,7 +6,7 @@
 
 #include "imgui.h"
 
-void ImpyD::Container::DrawContents(MpdClientWrapper &client)
+void ImpyD::Container::DrawContents(Context &context)
 {
     //dockspace id can't be 0, and 1 is the main dockspace.
     ImGui::DockSpace(panelId + 100);

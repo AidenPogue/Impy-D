@@ -18,7 +18,7 @@ namespace ImpyD {
         windowFlags = ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoScrollWithMouse;
     }
 
-    void VolumeControl::DrawContents(MpdClientWrapper &client)
+    void VolumeControl::DrawContents(Context &context)
     {
         if (Utils::IsReady(statusFuture))
         {
@@ -35,11 +35,11 @@ namespace ImpyD {
         if (!sliderEdited && ImGui::IsItemHovered() && mouseWheel != 0)
         {
             //TODO: Configurable change amount.
-            client.ChangeVolume(2 * (int) mouseWheel);
+            context.GetClient().ChangeVolume(2 * (int) mouseWheel);
         }
         else if (currentValue != oldValue)
         {
-            client.SetVolume(currentValue);
+            context.GetClient().SetVolume(currentValue);
         }
 
         ImGui::EndDisabled();
@@ -50,17 +50,17 @@ namespace ImpyD {
     }
 
 
-    void VolumeControl::OnIdleEvent(MpdClientWrapper &client, mpd_idle event)
+    void VolumeControl::OnIdleEvent(Context &context, mpd_idle event)
     {
         if (event & (MPD_IDLE_MIXER | MPD_IDLE_PLAYER))
         {
-            statusFuture = client.GetStatus();
+            InitState(context);
         }
     }
 
-    void VolumeControl::InitState(MpdClientWrapper &client)
+    void VolumeControl::InitState(Context &context)
     {
-        statusFuture = client.GetStatus();
+        statusFuture = context.GetClient().GetStatus();
     }
 
     std::string VolumeControl::PanelName()

@@ -136,10 +136,8 @@ int main(int, char**)
 
     ImGui::PushStyleVar(ImGuiStyleVar_FrameRounding, 2);
 
-    MpdClientWrapper client = MpdClientWrapper(nullptr, 0);
+    ImpyD::Context context(nullptr, 0);
     auto mainWindow = ImpyD::MainWindow();
-
-    auto idleTest = ImpyD::Mpd::IdleClientWrapper(nullptr, 0);
 
     while (!glfwWindowShouldClose(window))
     {
@@ -166,13 +164,13 @@ int main(int, char**)
         if (show_demo_window)
             ImGui::ShowDemoWindow(&show_demo_window);
 
-        auto events = idleTest.GetEventsAndClear();
+        auto events = context.GetIdleClient().GetEventsAndClear();
         if (events != 0)
         {
-            mainWindow.SendIdleEventToPanels(client, events);
+            mainWindow.SendIdleEventToPanels(context, events);
         }
 
-        mainWindow.Draw(client);
+        mainWindow.Draw(context);
 
         // Rendering
         ImGui::Render();

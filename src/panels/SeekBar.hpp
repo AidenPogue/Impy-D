@@ -20,7 +20,7 @@ namespace ImpyD
         std::future<std::unique_ptr<MpdSongWrapper>> songFuture;
         std::future<MpdClientWrapper::MpdStatusPtr> statusFuture;
 
-        void GetFutures(MpdClientWrapper &client);
+        void GetFutures(Context &context);
         void CheckFutures();
 
         void SetState(const std::unique_ptr<MpdSongWrapper> &song, const MpdClientWrapper::MpdStatusPtr &status);
@@ -36,11 +36,11 @@ namespace ImpyD
 
         ~SeekBar() override;
 
-        void DrawContents(MpdClientWrapper &client) override;
+        void DrawContents(Context &context) override;
 
-        void OnIdleEvent(MpdClientWrapper &client, mpd_idle event) override;
+        void OnIdleEvent(Context &context, mpd_idle event) override;
 
-        void InitState(MpdClientWrapper &client) override;
+        void InitState(Context &context) override;
 
         std::string PanelName() override;
     };

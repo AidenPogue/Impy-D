@@ -51,7 +51,7 @@ namespace ImpyD {
         return allFilters;
     }
 
-    void MediaLibraryTree::TreeItem::RequestChildren(MpdClientWrapper &client)
+    void MediaLibraryTree::TreeItem::RequestChildren(Context &context)
     {
         children = nullptr;
 
@@ -61,7 +61,7 @@ namespace ImpyD {
 
         auto filters = GetAllFilters();
 
-        childrenFuture = childIsBaseLayer ? client.Find(std::move(filters), allTags.front()) : client.List(allTags, std::move(filters));
+        childrenFuture = childIsBaseLayer ? context.GetClient().Find(std::move(filters), allTags.front()) : context.GetClient().List(allTags, std::move(filters));
     }
 
     bool MediaLibraryTree::TreeItem::WaitingForChildren()
@@ -98,21 +98,22 @@ namespace ImpyD {
         return GetFactoryName();
     }
 
-    void MediaLibraryTree::DrawContents(MpdClientWrapper &client)
+    void MediaLibraryTree::DrawContents(Context &context)
     {
-        DrawChildren(client, rootItems[0]);
+        DrawChildren(context, rootItems[0]);
     }
 
-    void MediaLibraryTree::DrawTreeItemContextMenu(MpdClientWrapper &client, TreeItem &childItem)
+    void MediaLibraryTree::DrawTreeItemContextMenu(Context &context, TreeItem &childItem)
     {
         if (ImGui::BeginPopupContextItem())
         {
             auto append = ImGui::MenuItem("Append to Queue");
-            auto send = ImGui::MenuItem("Send to Queue");
+            auto send = ImGui::MenuItem("Replace Queue");
 
             if (append || send)
             {
 
+                auto &client = context.GetClient();
                 // Only collect all filters if it's not from the base layer (songs just need URL)
                 // It would still work fine if we only used GetAllFilters, but it would be redundant for songs.
                 auto filters = childItem.layerIndex == testLayers.size() - 1 ? childItem.taggedItem->GetFilters() : childItem.GetAllFilters();
@@ -135,7 +136,7 @@ namespace ImpyD {
         }
     }
 
-    void MediaLibraryTree::DrawChildren(MpdClientWrapper &client, TreeItem &item)
+    void MediaLibraryTree::DrawChildren(Context &context, TreeItem &item)
     {
         if (item.layerIndex == testLayers.size() - 1)
         {
@@ -145,7 +146,7 @@ namespace ImpyD {
 
         if (!item.children && !item.WaitingForChildren())
         {
-            item.RequestChildren(client);
+            item.RequestChildren(context);
         }
 
         int flags = ImGuiTreeNodeFlags_SpanFullWidth | ImGuiTreeNodeFlags_DrawLinesToNodes;
@@ -167,18 +168,18 @@ namespace ImpyD {
 
                 if (shouldExpandItem)
                 {
-                    DrawChildren(client, childItem);
+                    DrawChildren(context, childItem);
                 }
                 else
                 {
                     auto nodeOpen = ImGui::TreeNodeEx(childItem.content.c_str(), flags);
                     //Only draw context menu here because this is the only spot this method actually draws.
-                    DrawTreeItemContextMenu(client, childItem);
+                    DrawTreeItemContextMenu(context, childItem);
                     if (nodeOpen)
                     {
                         if (item.children)
                         {
-                            DrawChildren(client, childItem);
+                            DrawChildren(context, childItem);
                         }
 
                         ImGui::TreePop();
@@ -195,16 +196,16 @@ namespace ImpyD {
         }
     }
 
-    void MediaLibraryTree::OnIdleEvent(MpdClientWrapper &client, mpd_idle event)
+    void MediaLibraryTree::OnIdleEvent(Context &context, mpd_idle event)
     {
         if (event & MPD_IDLE_DATABASE)
         {
-            rootItems.front().RequestChildren(client);
+            rootItems.front().RequestChildren(context);
         }
     }
 
-    void MediaLibraryTree::InitState(MpdClientWrapper &client)
+    void MediaLibraryTree::InitState(Context &context)
     {
-        rootItems.front().RequestChildren(client);
+        rootItems.front().RequestChildren(context);
     }
 } // ImMPD
