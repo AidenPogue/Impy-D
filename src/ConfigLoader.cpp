@@ -18,6 +18,7 @@ namespace ImpyD
         else
         {
             path.append(std::getenv("HOME"));
+            path.append(".config");
         }
 
         return path;
@@ -32,15 +33,29 @@ namespace ImpyD
 
     Config LoadConfigFromDisk()
     {
-        std::ifstream f(GetConfigPath());
+        auto path = GetConfigPath();
+        if (!std::filesystem::exists(path))
+        {
+            auto defaultConf = Config();
+            SaveConfig(defaultConf);
+            return defaultConf;
+        }
+
+        std::ifstream f(path);
         json j = json::parse(f);
-        Config config = j.get<Config>();
+        auto config = j.get<Config>();
         return config;
     }
 
     void SaveConfig(const Config& config)
     {
-        std::ofstream f(GetConfigPath());
+        auto path = GetConfigPath();
+        if (!std::filesystem::exists(path))
+        {
+            std::filesystem::create_directories(path);
+        }
+
+        std::ofstream f(path);
         json j = config;
         f << j.dump(1);
     }
