@@ -1,7 +1,9 @@
 #ifndef IM_MPD_CONTEXT_HPP
 #define IM_MPD_CONTEXT_HPP
+#include "Config.hpp"
 #include "Mpd/IdleClientWrapper.hpp"
 #include "Mpd/MpdClientWrapper.hpp"
+#include "ConfigLoader.hpp"
 
 namespace ImpyD
 {
@@ -13,11 +15,15 @@ namespace ImpyD
         MpdClientWrapper mainClient;
         Mpd::IdleClientWrapper idleClient;
 
+        Config config;
+
     public:
         Context(const char *host, unsigned port);
 
         MpdClientWrapper &GetClient();
         Mpd::IdleClientWrapper &GetIdleClient();
+
+        Config &GetConfig();
     };
 }
 
