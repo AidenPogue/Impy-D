@@ -52,7 +52,7 @@ namespace ImpyD
         auto path = GetConfigPath();
         if (!std::filesystem::exists(path))
         {
-            std::filesystem::create_directories(path);
+            std::filesystem::create_directories(path.parent_path());
         }
 
         std::ofstream f(path);
