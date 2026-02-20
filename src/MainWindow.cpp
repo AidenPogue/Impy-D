@@ -81,6 +81,11 @@ namespace ImpyD
     void MainWindow::SetWindowTitle(Context &context)
     {
         auto s = songFuture.get();
+        if (!s)
+        {
+            return;
+        }
+        
         glfwSetWindowTitle(glfwGetCurrentContext(), TitleFormatting::FormatITagged(*s, context.GetConfig().interface.windowTitleFormat).c_str());
     }
 
