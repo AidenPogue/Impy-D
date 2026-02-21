@@ -27,7 +27,7 @@ namespace ImpyD
             std::vector<std::unique_ptr<Mpd::IFilterGenerator>> GetAllFilters();
             void RequestChildren(Context &context);
             bool WaitingForChildren();
-            void ProcessFuture();
+            void ProcessFuture(Context &context);
         };
 
         std::vector<TreeItem> rootItems;

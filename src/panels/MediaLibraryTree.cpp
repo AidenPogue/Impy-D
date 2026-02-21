@@ -6,15 +6,11 @@
 #include "../TitleFormatting/TitleFormatter.hpp"
 
 namespace ImpyD {
-    //Testing layers!
 
-    static std::vector<LibraryLayer> testLayers =
+    static std::vector<LibraryLayer> &GetCurrentLayers(Context &context)
     {
-        LibraryLayer("%albumartist%", MPD_TAG_ALBUM_ARTIST),
-        LibraryLayer("%album% (%date%)", MPD_TAG_DATE),
-        LibraryLayer("Disc %disc%", MPD_TAG_DISC, true),
-        LibraryLayer("%disc%.%track% - %title% - %artist% (%duration%)", MPD_TAG_TRACK)
-    };
+        return context.GetConfig().library.libraryViews[0].layers;
+    }
 
     MediaLibraryTree::TreeItem::TreeItem(TreeItem *parent, std::unique_ptr<TitleFormatting::ITagged> taggedItem,
                                          const int layerIndex, const std::vector<LibraryLayer> &layers) : layerIndex(layerIndex)
@@ -53,11 +49,13 @@ namespace ImpyD {
 
     void MediaLibraryTree::TreeItem::RequestChildren(Context &context)
     {
+        auto &layers = GetCurrentLayers(context);
+
         children = nullptr;
 
-        auto childIsBaseLayer = layerIndex == testLayers.size() - 2;
+        auto childIsBaseLayer = layerIndex == layers.size() - 2;
 
-        auto allTags = testLayers[layerIndex + 1].GetUsedTags();
+        auto allTags = layers[layerIndex + 1].GetUsedTags();
 
         auto filters = GetAllFilters();
 
@@ -69,7 +67,7 @@ namespace ImpyD {
         return childrenFuture.valid();
     }
 
-    void MediaLibraryTree::TreeItem::ProcessFuture()
+    void MediaLibraryTree::TreeItem::ProcessFuture(Context &context)
     {
         if (Utils::IsReady(childrenFuture))
         {
@@ -83,14 +81,14 @@ namespace ImpyD {
 
             for (auto &item : items)
             {
-                children->emplace_back(TreeItem(this, std::move(item), layerIndex + 1, testLayers));
+                children->emplace_back(TreeItem(this, std::move(item), layerIndex + 1, GetCurrentLayers(context)));
             }
         }
     }
 
     MediaLibraryTree::MediaLibraryTree(int panelId): PanelBase(panelId)
     {
-        rootItems.emplace_back(nullptr, nullptr, -1, testLayers);
+
     }
 
     std::string MediaLibraryTree::PanelName()
@@ -116,7 +114,7 @@ namespace ImpyD {
                 auto &client = context.GetClient();
                 // Only collect all filters if it's not from the base layer (songs just need URL)
                 // It would still work fine if we only used GetAllFilters, but it would be redundant for songs.
-                auto filters = childItem.layerIndex == testLayers.size() - 1 ? childItem.taggedItem->GetFilters() : childItem.GetAllFilters();
+                auto filters = childItem.layerIndex == GetCurrentLayers(context).size() - 1 ? childItem.taggedItem->GetFilters() : childItem.GetAllFilters();
 
                 if (send)
                 {
@@ -138,7 +136,9 @@ namespace ImpyD {
 
     void MediaLibraryTree::DrawChildren(Context &context, TreeItem &item)
     {
-        if (item.layerIndex == testLayers.size() - 1)
+        auto &layers = GetCurrentLayers(context);
+
+        if (item.layerIndex == layers.size() - 1)
         {
             //Don't fetch children for base layer (because they don't have any)
             return;
@@ -151,7 +151,7 @@ namespace ImpyD {
 
         int flags = ImGuiTreeNodeFlags_SpanFullWidth | ImGuiTreeNodeFlags_DrawLinesToNodes;
         //If our children are base layer
-        if (item.layerIndex == testLayers.size() - 2)
+        if (item.layerIndex == layers.size() - 2)
         {
             flags |= ImGuiTreeNodeFlags_Leaf;
         }
@@ -164,7 +164,7 @@ namespace ImpyD {
 
                 ImGui::PushID(i);
 
-                const auto shouldExpandItem = item.children->size() == 1 && testLayers[item.layerIndex + 1].expandIfNoSiblings;
+                const auto shouldExpandItem = item.children->size() == 1 && layers[item.layerIndex + 1].expandIfNoSiblings;
 
                 if (shouldExpandItem)
                 {
@@ -191,7 +191,7 @@ namespace ImpyD {
         }
         else
         {
-            item.ProcessFuture();
+            item.ProcessFuture(context);
             ImGui::Text("Fetching...");
         }
     }
@@ -206,6 +206,7 @@ namespace ImpyD {
 
     void MediaLibraryTree::InitState(Context &context)
     {
+        rootItems.emplace_back(nullptr, nullptr, -1, GetCurrentLayers(context));
         rootItems.front().RequestChildren(context);
     }
 } // ImMPD
