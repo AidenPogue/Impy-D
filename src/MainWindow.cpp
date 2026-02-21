@@ -85,7 +85,7 @@ namespace ImpyD
         {
             return;
         }
-        
+
         glfwSetWindowTitle(glfwGetCurrentContext(), TitleFormatting::FormatITagged(*s, context.GetConfig().interface.windowTitleFormat).c_str());
     }
 
