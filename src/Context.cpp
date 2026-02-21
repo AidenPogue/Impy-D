@@ -4,7 +4,6 @@ namespace ImpyD
 {
     Context::Context(const char *host, unsigned port) : mainClient(host, port), idleClient(host, port), config(LoadConfigFromDisk())
     {
-
     }
 
     MpdClientWrapper &Context::GetClient()

@@ -11,4 +11,14 @@ namespace ImpyD
         edited |= ImGui::InputText("Window Title Format", &windowTitleFormat);
         return edited;
     }
+
+    bool Config::Library::DrawEditor()
+    {
+        return false;
+    }
+
+    bool Config::Library::LibraryView::DrawEditor()
+    {
+        return false;
+    }
 } // ImpyD
