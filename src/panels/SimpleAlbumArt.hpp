@@ -18,6 +18,8 @@ namespace ImMPD
         std::string currentSongUri;
         bool preserveAspectRatio = true;
 
+        void UnloadCurrentArtwork();
+
         void SetArtwork(const ImpyD::Mpd::AlbumArtHelper::Result &img);
 
         void CheckFutures(ImpyD::Context &context);

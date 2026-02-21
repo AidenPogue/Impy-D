@@ -7,14 +7,20 @@
 #include "../Utils.hpp"
 #include "../Mpd/AlbumArtHelper.hpp"
 
-void ImMPD::SimpleAlbumArt::SetArtwork(const ImpyD::Mpd::AlbumArtHelper::Result &img)
+void ImMPD::SimpleAlbumArt::UnloadCurrentArtwork()
 {
     if (currentArtTexture)
     {
         glDeleteTextures(1, &currentArtTexture);
     }
 
-    std::cout << "Uploading" << std::endl;
+    currentArtTexture = 0;
+}
+
+void ImMPD::SimpleAlbumArt::SetArtwork(const ImpyD::Mpd::AlbumArtHelper::Result &img)
+{
+    UnloadCurrentArtwork();
+
     ImpyD::Utils::UploadTexture(img.data.get(), img.width, img.height, &currentArtTexture);
 
     currentArtAspect = (float)img.width / img.height;
@@ -26,13 +32,16 @@ void ImMPD::SimpleAlbumArt::CheckFutures(ImpyD::Context &context)
     {
         SetArtwork(artFuture.get());
     }
-    else if (ImpyD::Utils::IsReady(songFuture))
+
+    if (ImpyD::Utils::IsReady(songFuture))
     {
         auto s = songFuture.get();
         if (!s)
         {
+            UnloadCurrentArtwork();
             return;
         }
+
         auto newUri = s->GetUri();
         if (newUri == currentSongUri)
         {
@@ -52,7 +61,6 @@ void ImMPD::SimpleAlbumArt::DrawContents(ImpyD::Context &context)
 {
     CheckFutures(context);
 
-    //Can we do this?
     if (currentArtTexture)
     {
         auto size = ImGui::GetContentRegionAvail();
