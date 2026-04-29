@@ -10,6 +10,7 @@ namespace ImpyD
 {
     class Config
     {
+
     public:
         class Interface : public IConfigItem
         {
@@ -21,13 +22,15 @@ namespace ImpyD
 
             bool DrawEditor() override;
 
-
+            std::string GetDisplayName() override;
         };
 
         class Library : public IConfigItem
         {
         public:
             bool DrawEditor() override;
+
+            std::string GetDisplayName() override;
 
             class LibraryView : public IConfigItem
             {
@@ -40,6 +43,8 @@ namespace ImpyD
                 }
 
                 bool DrawEditor() override;
+
+                std::string GetDisplayName() override;
 
                 std::string name;
                 std::vector<LibraryLayer> layers;

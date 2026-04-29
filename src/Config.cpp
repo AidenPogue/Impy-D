@@ -12,13 +12,28 @@ namespace ImpyD
         return edited;
     }
 
+    std::string Config::Interface::GetDisplayName()
+    {
+        return "Interface";
+    }
+
     bool Config::Library::DrawEditor()
     {
         return false;
     }
 
+    std::string Config::Library::GetDisplayName()
+    {
+        return "Library";
+    }
+
     bool Config::Library::LibraryView::DrawEditor()
     {
         return false;
+    }
+
+    std::string Config::Library::LibraryView::GetDisplayName()
+    {
+        return "";
     }
 } // ImpyD
