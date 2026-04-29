@@ -1,5 +1,6 @@
 #ifndef IM_MPD_ICONFIGITEM_HPP
 #define IM_MPD_ICONFIGITEM_HPP
+#include <string>
 
 namespace ImpyD
 {
@@ -7,6 +8,8 @@ namespace ImpyD
     {
     public:
         virtual ~IConfigItem() = default;
+
+        virtual std::string GetDisplayName() = 0;
 
         /**
          * Draws ImGui controls that will edit this instance.
