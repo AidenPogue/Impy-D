@@ -7,6 +7,8 @@ namespace ImpyD::Panels
 {
     class Settings : public PanelBase, PanelFactory::RegisterPanel<Settings>
     {
+        IConfigItem *selectedTopLevelCategory = nullptr;
+
     public:
         explicit Settings(int panelId)
             : PanelBase(panelId)
