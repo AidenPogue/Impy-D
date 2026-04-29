@@ -7,9 +7,11 @@
 
 #include <nlohmann/json.hpp>
 
+#include "../IConfigItem.hpp"
+
 namespace ImpyD
 {
-    class LibraryLayer
+    class LibraryLayer : public IConfigItem
     {
     public:
         LibraryLayer() = default;
@@ -27,6 +29,10 @@ namespace ImpyD
          * @return A vector of the used tags
          */
         [[nodiscard]] std::vector<mpd_tag_type> GetUsedTags() const;
+
+        std::string GetDisplayName() override;
+
+        bool DrawEditor() override;
     };
 
     NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE_WITH_DEFAULT(LibraryLayer, displayFormat, sortingTag, expandIfNoSiblings)
