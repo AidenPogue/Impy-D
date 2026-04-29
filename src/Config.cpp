@@ -19,7 +19,24 @@ namespace ImpyD
 
     bool Config::Library::DrawEditor()
     {
-        return false;
+        auto edited = false;
+        if (ImGui::CollapsingHeader("Library Views"))
+        {
+            if (ImGui::BeginListBox("##views"))
+            {
+                for (int i = 0; i < libraryViews.size(); ++i)
+                {
+                    ImGui::BeginGroup();
+                    ImGui::PushID(i);
+                    edited |= libraryViews[i].DrawEditor();
+                    ImGui::PopID();
+                    ImGui::EndGroup();
+                }
+                ImGui::EndListBox();
+            }
+        }
+
+        return edited;
     }
 
     std::string Config::Library::GetDisplayName()
@@ -29,7 +46,25 @@ namespace ImpyD
 
     bool Config::Library::LibraryView::DrawEditor()
     {
-        return false;
+        auto edited = false;
+        edited |= ImGui::InputText("Name", &name);
+
+        if (ImGui::BeginListBox("##layers", ImGui::GetContentRegionAvail()))
+        {
+            for (int i = 0; i < layers.size(); ++i)
+            {
+                ImGui::BeginGroup();
+                ImGui::PushID(i);
+                edited |= layers[i].DrawEditor();
+                ImGui::PopID();
+                ImGui::EndGroup();
+            }
+
+            ImGui::EndListBox();
+        }
+
+
+        return edited;
     }
 
     std::string Config::Library::LibraryView::GetDisplayName()
