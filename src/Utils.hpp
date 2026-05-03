@@ -38,7 +38,6 @@ namespace ImpyD::Utils
 
     /**
      * Checks if a future is ready without blocking.
-     * @tparam T
      * @param future
      * @return Whether the future is ready.
      */
