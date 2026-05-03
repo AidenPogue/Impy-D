@@ -14,4 +14,5 @@ target_sources(im-mpd
         LibraryLayer.cpp
         SimpleAlbumArt.cpp
         Settings.cpp
+        PeakMeterBar.cpp
 )
