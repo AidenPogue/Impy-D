@@ -10,6 +10,7 @@ target_sources(im-mpd
         Config.cpp
         ConfigLoader.cpp
         Context.cpp
+        FifoReader.cpp
 )
 
 add_subdirectory(panels)
