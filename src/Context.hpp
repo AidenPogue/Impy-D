@@ -4,6 +4,7 @@
 #include "Mpd/IdleClientWrapper.hpp"
 #include "Mpd/MpdClientWrapper.hpp"
 #include "ConfigLoader.hpp"
+#include "FifoReader.hpp"
 
 namespace ImpyD
 {
@@ -14,14 +15,15 @@ namespace ImpyD
     {
         MpdClientWrapper mainClient;
         Mpd::IdleClientWrapper idleClient;
-
         Config config;
+        FifoReader fifoReader;
 
     public:
         Context(const char *host, unsigned port);
 
         MpdClientWrapper &GetClient();
         Mpd::IdleClientWrapper &GetIdleClient();
+        FifoReader &GetFifoReader();
 
         Config &GetConfig();
     };
