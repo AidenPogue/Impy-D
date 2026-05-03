@@ -1,5 +1,7 @@
 #include "Context.hpp"
 
+#include "imgui.h"
+
 namespace ImpyD
 {
     Context::Context(const char *host, unsigned port) : mainClient(host, port), idleClient(host, port), config(LoadConfigFromDisk()), fifoReader(config.visualizer.bufferSize, config.visualizer.fifoPath)
@@ -24,5 +26,16 @@ namespace ImpyD
     Config & Context::GetConfig()
     {
         return config;
+    }
+
+    double Context::GetDeltaTime()
+    {
+        return deltaTime;
+    }
+
+    void Context::Tick()
+    {
+        deltaTime = ImGui::GetTime() - lastTickTime;
+        lastTickTime = ImGui::GetTime();
     }
 }

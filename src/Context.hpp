@@ -18,6 +18,9 @@ namespace ImpyD
         Config config;
         FifoReader fifoReader;
 
+        double lastTickTime;
+        double deltaTime;
+
     public:
         Context(const char *host, unsigned port);
 
@@ -26,6 +29,10 @@ namespace ImpyD
         FifoReader &GetFifoReader();
 
         Config &GetConfig();
+
+        double GetDeltaTime();
+
+        void Tick();
     };
 }
 

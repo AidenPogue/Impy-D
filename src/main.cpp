@@ -170,6 +170,7 @@ int main(int, char**)
             mainWindow.SendIdleEventToPanels(context, events);
         }
 
+        context.Tick();
         mainWindow.Draw(context);
 
         // Rendering
