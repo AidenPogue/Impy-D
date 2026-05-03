@@ -8,8 +8,6 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 add_executable(im-mpd)
 
-target_include_directories(im-mpd PRIVATE include)
-
 set_property(TARGET im-mpd PROPERTY CXX_STANDARD 20)
 
 add_subdirectory(src)
@@ -21,6 +19,8 @@ find_package(PkgConfig REQUIRED)
 pkg_check_modules(GLFW REQUIRED glfw3)
 pkg_check_modules(X_11 REQUIRED x11)
 pkg_check_modules(FC REQUIRED fontconfig)
+
+target_include_directories(im-mpd PRIVATE include)
 
 target_sources(imgui
   PRIVATE
