@@ -92,15 +92,13 @@ void ImMPD::SimpleAlbumArt::DrawContents(ImpyD::Context &context)
             ImGui::SetCursorPos(cursor);
         }
 
-        //const float loadingBrightness = .5f;
-        //auto tint = artFuture.valid() ? ImVec4(loadingBrightness, loadingBrightness, loadingBrightness , 1) : ImVec4(1, 1, 1, 1);
-        //ImGui::ImageWithBg((ImTextureID)(intptr_t)currentArtTexture, size, ImVec2(0,0), ImVec2(1,1), ImVec4(), tint);
         ImGui::Image((ImTextureID)(intptr_t)currentArtTexture, size);
     }
 }
 
 void ImMPD::SimpleAlbumArt::RequestCurrentArtwork(ImpyD::Context &context)
 {
+    currentSongUri = "";
     songFuture = context.GetClient().GetCurrentSong();
     artFuture = {};
 }
