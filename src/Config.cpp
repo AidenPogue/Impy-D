@@ -71,4 +71,19 @@ namespace ImpyD
     {
         return "";
     }
+
+    std::string Config::Visualizer::GetDisplayName()
+    {
+        return "Visualizer";
+    }
+
+    bool Config::Visualizer::DrawEditor()
+    {
+        auto edited = false;
+        edited |= ImGui::InputText("PCM Stream Path", &fifoPath);
+        edited |= ImGui::InputInt("Sample Rate", &fifoSampleRate);
+        edited |= ImGui::InputInt("Bit Depth", &fifoDepth, 8);
+        edited |= ImGui::InputInt("Channels", &fifoChannels);
+        return edited;
+    }
 } // ImpyD

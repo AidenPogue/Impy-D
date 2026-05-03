@@ -13,7 +13,7 @@ namespace ImpyD::Panels
     {
         static bool edited;
 
-        IConfigItem *categories[] = {&context.GetConfig().interface, &context.GetConfig().library};
+        IConfigItem *categories[] = {&context.GetConfig().interface, &context.GetConfig().library, &context.GetConfig().visualizer};
         if (!selectedTopLevelCategory)
         {
             selectedTopLevelCategory = categories[0];

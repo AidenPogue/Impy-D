@@ -61,16 +61,34 @@ namespace ImpyD
             };
         };
 
+        class Visualizer : public IConfigItem
+        {
+        public:
+            std::string GetDisplayName() override;
+
+            bool DrawEditor() override;
+
+            std::string fifoPath = "/tmp/mpd.fifo";
+            int fifoSampleRate = 44100;
+            int fifoDepth = 16;
+            int fifoChannels = 2;
+
+            int bufferSize = 44100 / 2;
+        };
+
         Interface interface;
         Library library;
+        Visualizer visualizer;
 
     };
 
     NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE_WITH_DEFAULT(Config::Interface, windowTitleFormat);
-    NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE_WITH_DEFAULT(Config, interface, library)
+    NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE_WITH_DEFAULT(Config, interface, library, visualizer)
 
     NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE_WITH_DEFAULT(Config::Library, libraryViews);
     NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE_WITH_DEFAULT(Config::Library::LibraryView, name, layers);
+
+    NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE_WITH_DEFAULT(Config::Visualizer, fifoPath, fifoSampleRate, fifoDepth, fifoChannels);
 }
 
 #endif
