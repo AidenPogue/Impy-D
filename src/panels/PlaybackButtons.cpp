@@ -19,33 +19,27 @@ struct PlaybackButton
 
 ImpyD::PlaybackButtonsPanel::~PlaybackButtonsPanel() = default;
 
-void ImpyD::PlaybackButtonsPanel::DrawContents(MpdClientWrapper &client)
+void ImpyD::PlaybackButtonsPanel::DrawContents(Context &context)
 {
-    if (ImGui::BeginPopupContextWindow())
+    auto &client = context.GetClient();
+
+    if (ImGui::Button("|<<"))
     {
-        // ImGui::Selectable("Test", &test);
-        ImGui::EndPopup();
-    }
-
-    if (ImGui::Button("|<<")) {
-        client.BeginNoIdle();
         client.Prev();
-        client.EndNoIdle();
     }
 
     ImGui::SameLine();
 
-    if (ImGui::Button(">||")) {
-        client.BeginNoIdle();
+    if (ImGui::Button(">||"))
+    {
         client.Toggle();
-        client.EndNoIdle();
     }
+
     ImGui::SameLine();
 
-    if (ImGui::Button(">>|")) {
-        client.BeginNoIdle();
+    if (ImGui::Button(">>|"))
+    {
         client.Next();
-        client.EndNoIdle();
     }
 }
 

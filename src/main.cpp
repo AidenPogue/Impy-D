@@ -7,6 +7,7 @@
 
 #include "Constants.hpp"
 #include "MainWindow.hpp"
+#include "Mpd/IdleClientWrapper.hpp"
 #include "PanelFactory/PanelRegistry.hpp"
 #define GL_SILENCE_DEPRECATION
 #if defined(IMGUI_IMPL_OPENGL_ES2)
@@ -85,7 +86,7 @@ int main(int, char**)
     io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;     // Enable Keyboard Controls
     io.ConfigFlags |= ImGuiConfigFlags_NavEnableGamepad;      // Enable Gamepad Controls
     io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;         // Enable Docking
-    io.ConfigFlags |= ImGuiConfigFlags_ViewportsEnable;       // Enable Multi-Viewport / Platform Windows
+    //io.ConfigFlags |= ImGuiConfigFlags_ViewportsEnable;       // Enable Multi-Viewport / Platform Windows
     //io.ConfigViewportsNoAutoMerge = true;
     //io.ConfigViewportsNoTaskBarIcon = true;
 
@@ -117,11 +118,11 @@ int main(int, char**)
     ImGui_ImplOpenGL3_Init(glsl_version);
 
     //TESTING!
-    style.FontSizeBase = 16.0f;
-    io.Fonts->AddFontFromFileTTF("/usr/share/fonts/adwaita-sans-fonts/AdwaitaSans-Regular.ttf");
-    ImFontConfig config;
-    config.MergeMode = true;
-    io.Fonts->AddFontFromFileTTF("/usr/share/fonts/google-droid-sans-fonts/DroidSansJapanese.ttf", 0, &config);
+    // style.FontSizeBase = 16.0f;
+    // io.Fonts->AddFontFromFileTTF("/usr/share/fonts/adwaita-sans-fonts/AdwaitaSans-Regular.ttf");
+    // ImFontConfig config;
+    // config.MergeMode = true;
+    // io.Fonts->AddFontFromFileTTF("/usr/share/fonts/google-droid-sans-fonts/DroidSansJapanese.ttf", 0, &config);
 
     //io.Fonts->AddFontFromFileTTF("../../misc/fonts/DroidSans.ttf");
     //io.Fonts->AddFontFromFileTTF("../../misc/fonts/Roboto-Medium.ttf");
@@ -135,7 +136,7 @@ int main(int, char**)
 
     ImGui::PushStyleVar(ImGuiStyleVar_FrameRounding, 2);
 
-    MpdClientWrapper client = MpdClientWrapper(nullptr, 0);
+    ImpyD::Context context(nullptr, 0);
     auto mainWindow = ImpyD::MainWindow();
 
     while (!glfwWindowShouldClose(window))
@@ -163,17 +164,13 @@ int main(int, char**)
         if (show_demo_window)
             ImGui::ShowDemoWindow(&show_demo_window);
 
-        if (client.GetIsConnected())
+        auto events = context.GetIdleClient().GetEventsAndClear();
+        if (events != 0)
         {
-            client.Poll();
-
-            if (client.HasIdleEvent())
-            {
-                mainWindow.SendIdleEventToPanels(client, client.GetIdleEventsAndClear());
-            }
+            mainWindow.SendIdleEventToPanels(context, events);
         }
 
-        mainWindow.Draw(client);
+        mainWindow.Draw(context);
 
         // Rendering
         ImGui::Render();

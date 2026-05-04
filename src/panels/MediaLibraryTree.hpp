@@ -13,6 +13,8 @@ namespace ImpyD
     private:
         class TreeItem
         {
+
+            std::future<std::vector<std::unique_ptr<TitleFormatting::ITagged>>> childrenFuture;
         public:
             TreeItem(TreeItem *parent, std::unique_ptr<TitleFormatting::ITagged> taggedItem, int layerIndex, const std::vector<LibraryLayer> &layers);
 
@@ -23,13 +25,12 @@ namespace ImpyD
             const int layerIndex;
 
             std::vector<std::unique_ptr<Mpd::IFilterGenerator>> GetAllFilters();
-
-
+            void RequestChildren(Context &context);
+            bool WaitingForChildren();
+            void ProcessFuture(Context &context);
         };
 
         std::vector<TreeItem> rootItems;
-
-        void FetchChildren(MpdClientWrapper &client, TreeItem &item);
 
     public:
         IMPYD_REGISTER_PANEL_FactoryFunc(MediaLibraryTree);
@@ -40,17 +41,17 @@ namespace ImpyD
         std::string PanelName() override;
 
     protected:
-        void DrawContents(MpdClientWrapper &client) override;
+        void DrawContents(Context &context) override;
 
-        static void DrawTreeItemContextMenu(MpdClientWrapper &client,
+        static void DrawTreeItemContextMenu(Context &context,
                                             TreeItem &childItem);
 
-        void DrawChildren(MpdClientWrapper &client, TreeItem &item);
+        void DrawChildren(Context &context, TreeItem &item);
 
     public:
-        void OnIdleEvent(MpdClientWrapper &client, mpd_idle event) override;
+        void OnIdleEvent(Context &context, mpd_idle event) override;
 
-        void InitState(MpdClientWrapper &client) override;
+        void InitState(Context &context) override;
     };
 } // ImMPD
 

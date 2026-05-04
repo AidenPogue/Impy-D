@@ -17,7 +17,7 @@ namespace ImpyD
 
         ~PlaybackButtonsPanel() override;
 
-        void DrawContents(MpdClientWrapper &client) override;
+        void DrawContents(Context &context) override;
 
         std::string PanelName() override;
     };

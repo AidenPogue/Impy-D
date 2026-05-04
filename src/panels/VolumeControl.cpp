@@ -5,6 +5,7 @@
 #include "VolumeControl.hpp"
 
 #include "imgui.h"
+#include "../Utils.hpp"
 
 namespace ImpyD {
     void VolumeControl::SetState(const MpdClientWrapper::MpdStatusPtr &status)
@@ -17,8 +18,13 @@ namespace ImpyD {
         windowFlags = ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoScrollWithMouse;
     }
 
-    void VolumeControl::DrawContents(MpdClientWrapper &client)
+    void VolumeControl::DrawContents(Context &context)
     {
+        if (Utils::IsReady(statusFuture))
+        {
+            SetState(statusFuture.get());
+        }
+
         const auto oldValue = currentValue;
 
         ImGui::BeginDisabled(currentValue == -1);
@@ -28,15 +34,12 @@ namespace ImpyD {
         const auto mouseWheel = ImGui::GetIO().MouseWheel;
         if (!sliderEdited && ImGui::IsItemHovered() && mouseWheel != 0)
         {
-            client.BeginNoIdle();
-            client.ChangeVolume(2 * (int)mouseWheel);
-            client.EndNoIdle();
+            //TODO: Configurable change amount.
+            context.GetClient().ChangeVolume(2 * (int) mouseWheel);
         }
         else if (currentValue != oldValue)
         {
-            client.BeginNoIdle();
-            client.SetVolume(currentValue);
-            client.EndNoIdle();
+            context.GetClient().SetVolume(currentValue);
         }
 
         ImGui::EndDisabled();
@@ -47,20 +50,17 @@ namespace ImpyD {
     }
 
 
-    void VolumeControl::OnIdleEvent(MpdClientWrapper &client, mpd_idle event)
+    void VolumeControl::OnIdleEvent(Context &context, mpd_idle event)
     {
         if (event & (MPD_IDLE_MIXER | MPD_IDLE_PLAYER))
         {
-            SetState(client.GetStatus());
+            InitState(context);
         }
     }
 
-    void VolumeControl::InitState(MpdClientWrapper &client)
+    void VolumeControl::InitState(Context &context)
     {
-        client.BeginNoIdle();
-        auto& status = client.GetStatus();
-        SetState(status);
-        client.EndNoIdle();
+        statusFuture = context.GetClient().GetStatus();
     }
 
     std::string VolumeControl::PanelName()

@@ -6,7 +6,7 @@
 
 namespace ImpyD
 {
-    void ImGuiStyleEditor::DrawContents(MpdClientWrapper &client)
+    void ImGuiStyleEditor::DrawContents(Context &context)
     {
         ImGui::ShowStyleEditor();
     }

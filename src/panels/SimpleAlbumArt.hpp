@@ -1,6 +1,7 @@
 #pragma once
 
 #include "PanelBase.hpp"
+#include "../Mpd/AlbumArtHelper.hpp"
 #include "../PanelFactory/RegisterPanel.hpp"
 #include "backends/imgui_impl_opengl3_loader.h"
 
@@ -9,13 +10,19 @@ namespace ImMPD
     class SimpleAlbumArt : public ImpyD::PanelBase, ImpyD::PanelFactory::RegisterPanel<SimpleAlbumArt>
     {
     private:
+        std::future<std::unique_ptr<MpdSongWrapper>> songFuture;
+        std::future<ImpyD::Mpd::AlbumArtHelper::Result> artFuture;
+
         GLuint currentArtTexture = 0;
         float currentArtAspect = 1;
         std::string currentSongUri;
         bool preserveAspectRatio = true;
-        uint8_t *receiveBuffer = NULL;
 
-        void SetArtwork(MpdClientWrapper &client, const std::string &uri);
+        void UnloadCurrentArtwork();
+
+        void SetArtwork(const ImpyD::Mpd::AlbumArtHelper::Result &img);
+
+        void CheckFutures(ImpyD::Context &context);
 
     public:
         explicit SimpleAlbumArt(int panelId)
@@ -29,15 +36,15 @@ namespace ImMPD
         std::string PanelName() override;
 
     protected:
-        void DrawContents(MpdClientWrapper &client) override;
+        void DrawContents(ImpyD::Context &context) override;
 
-        void SetCurrentArtwork(MpdClientWrapper &client);
+        void RequestCurrentArtwork(ImpyD::Context &context);
 
     public:
-        void OnIdleEvent(MpdClientWrapper &client, mpd_idle event) override;
+        void OnIdleEvent(ImpyD::Context &context, mpd_idle event) override;
 
-        void InitState(MpdClientWrapper &client) override;
+        void InitState(ImpyD::Context &context) override;
 
-        void DrawContextMenu(MpdClientWrapper &client) override;
+        void DrawContextMenu(ImpyD::Context &context) override;
     };
 }

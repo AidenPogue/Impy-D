@@ -9,4 +9,9 @@ target_sources(im-mpd
         TagFilterGenerator.cpp
         UriFilterGenerator.cpp
         AlbumArtHelper.cpp
+        IdleClientWrapper.cpp
+        ConnectionManager.cpp
+        AlbumArtClient.cpp
 )
+
+add_subdirectory(ClientActions)

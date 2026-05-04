@@ -13,4 +13,5 @@ target_sources(im-mpd
         ImGuiStyleEditor.cpp
         LibraryLayer.cpp
         SimpleAlbumArt.cpp
+        Settings.cpp
 )

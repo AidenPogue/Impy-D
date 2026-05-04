@@ -7,6 +7,9 @@ target_sources(im-mpd
         Utils.cpp
         stb_image.cpp
         MainWindow.cpp
+        Config.cpp
+        ConfigLoader.cpp
+        Context.cpp
 )
 
 add_subdirectory(panels)

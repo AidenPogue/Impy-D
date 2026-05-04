@@ -6,15 +6,11 @@
 #include "../TitleFormatting/TitleFormatter.hpp"
 
 namespace ImpyD {
-    //Testing layers!
 
-    static std::vector<LibraryLayer> testLayers =
+    static std::vector<LibraryLayer> &GetCurrentLayers(Context &context)
     {
-        LibraryLayer("%albumartist%", MPD_TAG_ALBUM_ARTIST),
-        LibraryLayer("%album% (%date%)", MPD_TAG_DATE),
-        LibraryLayer("Disc %disc%", MPD_TAG_DISC, true),
-        LibraryLayer("%disc%.%track% - %title% - %artist% (%duration%)", MPD_TAG_TRACK)
-    };
+        return context.GetConfig().library.libraryViews[0].layers;
+    }
 
     MediaLibraryTree::TreeItem::TreeItem(TreeItem *parent, std::unique_ptr<TitleFormatting::ITagged> taggedItem,
                                          const int layerIndex, const std::vector<LibraryLayer> &layers) : layerIndex(layerIndex)
@@ -51,48 +47,48 @@ namespace ImpyD {
         return allFilters;
     }
 
-    void MediaLibraryTree::FetchChildren(MpdClientWrapper &client, TreeItem &item)
+    void MediaLibraryTree::TreeItem::RequestChildren(Context &context)
     {
-        if (!item.children)
+        auto &layers = GetCurrentLayers(context);
+
+        children = nullptr;
+
+        auto childIsBaseLayer = layerIndex == layers.size() - 2;
+
+        auto allTags = layers[layerIndex + 1].GetUsedTags();
+
+        auto filters = GetAllFilters();
+
+        childrenFuture = childIsBaseLayer ? context.GetClient().Find(std::move(filters), allTags.front()) : context.GetClient().List(allTags, std::move(filters));
+    }
+
+    bool MediaLibraryTree::TreeItem::WaitingForChildren()
+    {
+        return childrenFuture.valid();
+    }
+
+    void MediaLibraryTree::TreeItem::ProcessFuture(Context &context)
+    {
+        if (Utils::IsReady(childrenFuture))
         {
-            item.children = std::make_unique<std::vector<TreeItem>>();
-        }
-        item.children->clear();
-
-        auto childIsBaseLayer = item.layerIndex == testLayers.size() - 2;
-
-        auto allTags = testLayers[item.layerIndex + 1].GetUsedTags();
-
-        auto filters = item.GetAllFilters();
-
-        client.BeginNoIdle();
-
-        //This seems wrong.
-        if (childIsBaseLayer)
-        {
-            auto songs = client.Find(&filters, allTags.front());
-            for (auto &song : songs)
+            if (!children)
             {
-                auto copy = std::make_unique<MpdSongWrapper>(song);
-                item.children->emplace_back(TreeItem(&item, std::move(copy), item.layerIndex + 1, testLayers));
+                children = std::make_unique<std::vector<TreeItem>>();
+            }
+            children->clear();
+
+            auto items = childrenFuture.get();
+
+            for (auto &item : items)
+            {
+                children->emplace_back(TreeItem(this, std::move(item), layerIndex + 1, GetCurrentLayers(context)));
             }
         }
-        else
-        {
-            auto listing = client.List(&allTags, &filters);
-            for (auto &listItem : listing)
-            {
-                auto copy = std::make_unique<Mpd::ArbitraryTagged>(listItem);
-                item.children->emplace_back(TreeItem(&item, std::move(copy), item.layerIndex + 1, testLayers));
-            }
-        }
-
-        client.EndNoIdle();
     }
 
     MediaLibraryTree::MediaLibraryTree(int panelId): PanelBase(panelId)
     {
-        rootItems.emplace_back(nullptr, nullptr, -1, testLayers);
+
     }
 
     std::string MediaLibraryTree::PanelName()
@@ -100,107 +96,117 @@ namespace ImpyD {
         return GetFactoryName();
     }
 
-    void MediaLibraryTree::DrawContents(MpdClientWrapper &client)
+    void MediaLibraryTree::DrawContents(Context &context)
     {
-        DrawChildren(client, rootItems[0]);
+        DrawChildren(context, rootItems[0]);
     }
 
-    void MediaLibraryTree::DrawTreeItemContextMenu(MpdClientWrapper &client, TreeItem &childItem)
+    void MediaLibraryTree::DrawTreeItemContextMenu(Context &context, TreeItem &childItem)
     {
         if (ImGui::BeginPopupContextItem())
         {
             auto append = ImGui::MenuItem("Append to Queue");
-            auto send = ImGui::MenuItem("Send to Queue");
+            auto send = ImGui::MenuItem("Replace Queue");
 
             if (append || send)
             {
-                client.BeginNoIdle();
 
+                auto &client = context.GetClient();
                 // Only collect all filters if it's not from the base layer (songs just need URL)
                 // It would still work fine if we only used GetAllFilters, but it would be redundant for songs.
-                auto filters = childItem.layerIndex == testLayers.size() - 1 ? childItem.taggedItem->GetFilters() : childItem.GetAllFilters();
+                auto filters = childItem.layerIndex == GetCurrentLayers(context).size() - 1 ? childItem.taggedItem->GetFilters() : childItem.GetAllFilters();
 
                 if (send)
                 {
                     client.ClearQueue();
                 }
 
-                client.FindAddQueue(&filters);
+                client.FindAddQueue(std::move(filters));
 
                 if (send)
                 {
                     client.PlayCurrent();
                 }
 
-                client.EndNoIdle();
             }
 
             ImGui::EndPopup();
         }
     }
 
-    void MediaLibraryTree::DrawChildren(MpdClientWrapper &client, TreeItem &item)
+    void MediaLibraryTree::DrawChildren(Context &context, TreeItem &item)
     {
-        if (item.layerIndex == testLayers.size() - 1)
+        auto &layers = GetCurrentLayers(context);
+
+        if (item.layerIndex == layers.size() - 1)
         {
             //Don't fetch children for base layer (because they don't have any)
             return;
         }
 
-        if (!item.children)
+        if (!item.children && !item.WaitingForChildren())
         {
-            FetchChildren(client, item);
+            item.RequestChildren(context);
         }
 
         int flags = ImGuiTreeNodeFlags_SpanFullWidth | ImGuiTreeNodeFlags_DrawLinesToNodes;
         //If our children are base layer
-        if (item.layerIndex == testLayers.size() - 2)
+        if (item.layerIndex == layers.size() - 2)
         {
             flags |= ImGuiTreeNodeFlags_Leaf;
         }
 
-        for (int i = 0; i < item.children->size(); i++)
+        if (!item.WaitingForChildren())
         {
-            auto &childItem = item.children->at(i);
-
-            ImGui::PushID(i);
-
-            const auto shouldExpandItem = item.children->size() == 1 && testLayers[item.layerIndex + 1].expandIfNoSiblings;
-
-            if (shouldExpandItem)
+            for (int i = 0; i < item.children->size(); i++)
             {
-                DrawChildren(client, childItem);
-            }
-            else
-            {
-                auto nodeOpen = ImGui::TreeNodeEx(childItem.content.c_str(), flags);
-                //Only draw context menu here because this is the only spot this method actually draws.
-                DrawTreeItemContextMenu(client, childItem);
-                if (nodeOpen)
+                auto &childItem = item.children->at(i);
+
+                ImGui::PushID(i);
+
+                const auto shouldExpandItem = item.children->size() == 1 && layers[item.layerIndex + 1].expandIfNoSiblings;
+
+                if (shouldExpandItem)
                 {
-                    if (item.children)
-                    {
-                        DrawChildren(client, childItem);
-                    }
-
-                    ImGui::TreePop();
+                    DrawChildren(context, childItem);
                 }
-            }
+                else
+                {
+                    auto nodeOpen = ImGui::TreeNodeEx(childItem.content.c_str(), flags);
+                    //Only draw context menu here because this is the only spot this method actually draws.
+                    DrawTreeItemContextMenu(context, childItem);
+                    if (nodeOpen)
+                    {
+                        if (item.children)
+                        {
+                            DrawChildren(context, childItem);
+                        }
 
-            ImGui::PopID();
+                        ImGui::TreePop();
+                    }
+                }
+
+                ImGui::PopID();
+            }
+        }
+        else
+        {
+            item.ProcessFuture(context);
+            ImGui::Text("Fetching...");
         }
     }
 
-    void MediaLibraryTree::OnIdleEvent(MpdClientWrapper &client, mpd_idle event)
+    void MediaLibraryTree::OnIdleEvent(Context &context, mpd_idle event)
     {
         if (event & MPD_IDLE_DATABASE)
         {
-            FetchChildren(client, rootItems[0]);
+            rootItems.front().RequestChildren(context);
         }
     }
 
-    void MediaLibraryTree::InitState(MpdClientWrapper &client)
+    void MediaLibraryTree::InitState(Context &context)
     {
-        FetchChildren(client, rootItems[0]);
+        rootItems.emplace_back(nullptr, nullptr, -1, GetCurrentLayers(context));
+        rootItems.front().RequestChildren(context);
     }
 } // ImMPD

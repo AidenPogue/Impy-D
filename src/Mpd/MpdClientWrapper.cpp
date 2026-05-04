@@ -1,449 +1,219 @@
 #include "MpdClientWrapper.hpp"
+
+#include <algorithm>
+
 #include "MpdIdleEventData.hpp"
 
-#include <assert.h>
 #include <fstream>
+#include <future>
 #include <iostream>
-#include <map>
-#include <optional>
-#include <poll.h>
-#include <stack>
+#include <utility>
 #include <mpd/status.h>
 
 #include "ArbitraryTagged.hpp"
+#include "imgui.h"
 #include "MpdSongWrapper.hpp"
+#include "../Utils.hpp"
+#include "ClientActions/ChangeVolumeAction.hpp"
+#include "ClientActions/FindAction.hpp"
+#include "ClientActions/GetCurrentSongAction.hpp"
+#include "ClientActions/ListAction.hpp"
+#include "ClientActions/NoParameterAction.hpp"
+#include "ClientActions/NoParameterPromiseAction.hpp"
+#include "ClientActions/PlayIdAction.hpp"
+#include "ClientActions/SeekAction.hpp"
 
-static uint8_t *binaryChunkBuffer;
-static size_t binaryChunkBufferSize = 0;
+using namespace ImpyD::ClientActions;
+using namespace std::chrono_literals;
 
-MpdClientWrapper::MpdClientWrapper(const char* hostname, unsigned int port, unsigned binaryLimit)
+#define NO_PARAM_ACTION_PTR(func) new NoParameterAction(func)
+
+MpdClientWrapper::MpdClientWrapper(const char* hostname, unsigned int port) :
+connectionManager(hostname, port),
+thread([this](std::stop_token st) { EventLoop(st); })
 {
-    this->hostname = hostname;
-    this->port = port;
+}
 
-    Connect();
+void MpdClientWrapper::EventLoop(std::stop_token st)
+{
+    //This was not chosen in any kind of scientific way.
+    //It could probably be a lot longer, but I'm not sure by how much.
+    const auto pingInterval = 5s;
 
-    /*
-    if (GetIsConnected())
+    std::cout << "Starting main client loop." << std::endl;
+    while (!st.stop_requested())
     {
-        mpd_run_binarylimit(connection, binaryLimit);
-        ImMPD::Utils::CreateOrResizeBinaryBuffer(binaryChunkBuffer, binaryChunkBufferSize, binaryLimit);
-    }
-    */
-}
+        std::unique_lock lk(eventsMutex);
+        eventAddedConvar.wait_for(lk, pingInterval, [this](){return !events.empty();});
 
-MpdClientWrapper::~MpdClientWrapper()
-{
-}
-
-void MpdClientWrapper::ClearCache()
-{
-    cache = MpdClientCache();
-}
-
-void MpdClientWrapper::ThrowIfNotConnected()
-{
-    if (!GetIsConnected())
-    {
-        throw std::runtime_error(mpd_connection_get_error_message(connection));
-    }
-}
-
-int MpdClientWrapper::Connect()
-{
-    if (connection == nullptr)
-    {
-        connection = mpd_connection_new(hostname, port, 0);
-        if (mpd_connection_get_error(connection) != MPD_ERROR_SUCCESS)
+        if (connectionManager.CheckConnected())
         {
-            std::cerr << "Connection error: " << mpd_connection_get_error_message(connection) << std::endl;
-            mpd_connection_free(connection);
-            connection = nullptr;
-            return 1;
+            auto connection = connectionManager.GetConnection();
+
+            //If we woke up and are still empty it means we timed out.
+            //We periodically ping to stop the connection from getting closed.
+            if (events.empty())
+            {
+                mpd_send_command(connection, "ping", nullptr);
+                mpd_response_finish(connection);
+            }
+            else
+            {
+                const auto &ev = events.front();
+                ev->Execute(connection);
+                events.pop();
+            }
         }
-        mpd_send_idle(connection);
-        return 0;
+
+        lk.unlock();
     }
-
-    return 1;
-}
-
-
-bool MpdClientWrapper::ReceiveIdle()
-{
-    ThrowIfNotConnected();
-    struct pollfd pfd;
-    pfd.fd = mpd_connection_get_fd(connection);
-    pfd.events = POLLIN;   // data available to read
-    pfd.revents = 0;
-
-    int ret = poll(&pfd, 1, 0);
-
-    if (ret > 0 && pfd.revents & (POLLIN | POLLERR | POLLHUP))
-    {
-        idleEvents |= mpd_recv_idle(connection, false);
-        ClearCache();
-        return false;
-    }
-    return !noIdleMode;
 }
 
 bool MpdClientWrapper::GetIsConnected() const
 {
-    bool null = connection == nullptr;
-    if (null || mpd_connection_get_error(connection) != MPD_ERROR_SUCCESS)
-    {
-        //std::cout << "Connection error: " << mpd_connection_get_error_message(connection) << std::endl;
-        return false;
-    }
-
-    return true;
+    return connectionManager.CheckConnected();
 }
 
-void MpdClientWrapper::BeginNoIdle()
+const ImpyD::Mpd::ConnectionManager & MpdClientWrapper::GetConnectionManager() const
 {
-    assert(!noIdleMode);
-    if (ReceiveIdle())
-    {
-        mpd_run_noidle(connection);
-    }
-    noIdleMode = true;
+    return connectionManager;
 }
 
-void MpdClientWrapper::EndNoIdle()
+std::future<std::unique_ptr<MpdSongWrapper>> MpdClientWrapper::GetCurrentSong()
 {
-    assert(noIdleMode);
-    ReceiveIdle();
-    mpd_send_idle(connection);
-    noIdleMode = false;
+    auto action = new NoParameterPromiseAction<std::unique_ptr<MpdSongWrapper>>(
+        [](mpd_connection *c)
+        {
+            auto s = mpd_run_current_song(c);
+            return s ? std::make_unique<MpdSongWrapper>(s) : nullptr;
+        });
+    auto future = action->GetFuture();
+    EnqueueEvent(action);
+    return future;
 }
 
-bool MpdClientWrapper::HasIdleEvent()
-{
-    return idleEvents != 0;
-}
-
-mpd_idle MpdClientWrapper::GetIdleEventsAndClear()
-{
-    auto old = idleEvents;
-    idleEvents = 0;
-    return static_cast<mpd_idle>(old);
-}
-
-const MpdClientWrapper::MpdSongPtr &MpdClientWrapper::GetCurrentSong()
-{
-    ThrowIfNotConnected();
-
-    if (cache.currentSong == nullptr)
-    {
-        cache.currentSong = {mpd_run_current_song(connection), &mpd_song_free};
-    }
-    
-    return cache.currentSong;
-}
-
-std::vector<MpdSongWrapper> MpdClientWrapper::GetQueue() const
+std::vector<std::unique_ptr<ImpyD::TitleFormatting::ITagged>> MpdClientWrapper::GetQueueImpl(mpd_connection *connection)
 {
     mpd_send_list_queue_meta(connection);
-    return ReceiveSongList();
+    return ImpyD::Utils::ReceiveSongList(connection);
 }
 
-bool MpdClientWrapper::ClearQueue()
+std::future<std::vector<std::unique_ptr<ImpyD::TitleFormatting::ITagged>>> MpdClientWrapper::GetQueue()
 {
-    ThrowIfNotConnected();
-    ClearCache();
-    return mpd_run_clear(connection);
+    auto action = new NoParameterPromiseAction(GetQueueImpl);
+    auto future = action->GetFuture();
+    EnqueueEvent(action);
+    return future;
 }
 
-bool MpdClientWrapper::RandomizeQueue()
+void MpdClientWrapper::ClearQueue()
 {
-    ThrowIfNotConnected();
-    ClearCache();
-    return mpd_run_shuffle(connection);
+    EnqueueEvent(NO_PARAM_ACTION_PTR(mpd_run_clear));
 }
 
-bool MpdClientWrapper::PlayCurrent()
+void MpdClientWrapper::RandomizeQueue()
 {
-    ThrowIfNotConnected();
-
-    auto res= mpd_run_play(connection);
-    ClearCache();
-    
-    return res;
+    EnqueueEvent(NO_PARAM_ACTION_PTR(mpd_run_shuffle));
 }
 
-bool MpdClientWrapper::PlayId(unsigned id)
+void MpdClientWrapper::PlayCurrent()
 {
-    ThrowIfNotConnected();
-    auto res = mpd_run_play_id(connection, id);
-    ClearCache();
-    return res;
+    EnqueueEvent(NO_PARAM_ACTION_PTR(mpd_run_play));
 }
 
-bool MpdClientWrapper::Pause()
+void MpdClientWrapper::PlayId(unsigned id)
 {
-    ThrowIfNotConnected();
-    auto res= mpd_run_pause(connection, true);
-    ClearCache();
-    return res;
+    EnqueueEvent(new PlayIdAction(id));
 }
 
-bool MpdClientWrapper::Toggle()
+void MpdClientWrapper::Pause()
 {
-    ThrowIfNotConnected();
-    auto& status = GetStatus();
-    auto state = mpd_status_get_state(status.get());
+    EnqueueEvent(NO_PARAM_ACTION_PTR([](mpd_connection *c){return mpd_run_pause(c, true);}));
+}
 
-    bool res = false;
+static bool ToggleImpl(mpd_connection *connection)
+{
+    auto status = mpd_run_status(connection);
+    auto state = mpd_status_get_state(status);
+    mpd_status_free(status);
 
     if (state == MPD_STATE_STOP || state == MPD_STATE_UNKNOWN)
     {
-        res = mpd_run_play(connection);
-    }
-    else
-    {
-        res = mpd_run_pause(connection, state != MPD_STATE_PAUSE);
-    }
-    ClearCache();
-    return res;
-}
-
-bool MpdClientWrapper::Next()
-{
-    ThrowIfNotConnected();
-    auto res= mpd_run_next(connection);
-    ClearCache();
-    return res;
-}
-
-bool MpdClientWrapper::Prev()
-{
-    ThrowIfNotConnected();
-    auto res= mpd_run_previous(connection);
-    ClearCache();
-    return res;
-}
-
-bool MpdClientWrapper::SeekToSeconds(float s, bool relative)
-{
-    ThrowIfNotConnected();
-    auto res= mpd_run_seek_current(connection, s, relative);
-    ClearCache();
-    return res;
-}
-
-bool MpdClientWrapper::SetVolume(int volume)
-{
-    ThrowIfNotConnected();
-    auto res= mpd_run_set_volume(connection, volume);
-    ClearCache();
-    return res;
-}
-
-bool MpdClientWrapper::ChangeVolume(int by)
-{
-    ThrowIfNotConnected();
-    ClearCache();
-    return mpd_run_change_volume(connection, by);
-}
-
-std::vector<ImpyD::Mpd::ArbitraryTagged> MpdClientWrapper::List(
-    const std::vector<mpd_tag_type> *groups,
-    const std::vector<std::unique_ptr<ImpyD::Mpd::IFilterGenerator>> *filters)
-{
-    ThrowIfNotConnected();
-    mpd_search_cancel(connection);
-
-    assert(!groups->empty());
-    mpd_search_db_tags(connection, groups->back());
-
-    if (filters)
-    {
-        for (auto &expression : *filters)
-        {
-            expression->ApplyFilter(connection);
-        }
+        return mpd_run_play(connection);
     }
 
-    for (int i = groups->size() - 2; i >= 0; i--)
-    {
-        const auto &group = groups->at(i);
-        mpd_search_add_group_tag(connection, group);
-    }
-
-    mpd_search_commit(connection);
-
-    std::vector<ImpyD::Mpd::ArbitraryTagged> list;
-
-    //TODO: explain what this is for
-    std::vector<std::pair<mpd_tag_type, std::string>> tagStack;
-
-    auto pair = mpd_recv_pair(connection);
-    while (pair != nullptr)
-    {
-        auto currentType = mpd_tag_name_iparse(pair->name);
-
-        if (groups->at(tagStack.size()) == currentType)
-        {
-            tagStack.emplace_back(std::pair(currentType, pair->value));
-        }
-        else
-        {
-            while (tagStack.back().first != currentType)
-            {
-                tagStack.pop_back();
-            }
-            tagStack.pop_back();
-            tagStack.emplace_back(std::pair(currentType, pair->value));
-        }
-
-        if (currentType == groups->back())
-        {
-            auto item = ImpyD::Mpd::ArbitraryTagged();
-
-            for (const auto &[fst, snd] : tagStack)
-            {
-                item.AddValue(fst, snd);
-            }
-
-            tagStack.pop_back();
-            list.push_back(item);
-        }
-
-        mpd_return_pair(connection, pair);
-        pair = mpd_recv_pair(connection);
-    }
-
-    //mpd_response_finish(connection);
-
-    return list;
+    return mpd_run_pause(connection, state != MPD_STATE_PAUSE);
 }
 
-void MpdClientWrapper::SetupFind(const std::vector<std::unique_ptr<ImpyD::Mpd::IFilterGenerator>> *filters, mpd_tag_type sort) const
+void MpdClientWrapper::Toggle()
 {
-
-    if (!filters || filters->empty())
-    {
-        //Fight me, MPD docs. I WILL keep a copy of the entire database
-        mpd_search_add_expression(connection, "(any != '')");
-    }
-    else
-    {
-        for (auto &expression : *filters)
-        {
-            expression->ApplyFilter(connection);
-        }
-    }
-
-    if (sort != MPD_TAG_UNKNOWN)
-    {
-        mpd_search_add_sort_tag(connection, sort, false);
-    }
+    EnqueueEvent(NO_PARAM_ACTION_PTR(ToggleImpl));
 }
 
-std::vector<MpdSongWrapper> MpdClientWrapper::Find(const std::vector<std::unique_ptr<ImpyD::Mpd::IFilterGenerator>> *filters, mpd_tag_type sort) const
+void MpdClientWrapper::Next()
 {
-    mpd_search_cancel(connection);
-    mpd_search_db_songs(connection, true);
-
-    SetupFind(filters, sort);
-
-    mpd_search_commit(connection);
-
-    return ReceiveSongList();
+    EnqueueEvent(NO_PARAM_ACTION_PTR(mpd_run_next));
 }
 
-void MpdClientWrapper::FindAddQueue(const std::vector<std::unique_ptr<ImpyD::Mpd::IFilterGenerator>> *filters, mpd_tag_type sort) const
+void MpdClientWrapper::Prev()
 {
-    mpd_search_cancel(connection);
-    mpd_search_add_db_songs(connection, true);
-
-    SetupFind(filters, sort);
-
-    mpd_search_commit(connection);
-    mpd_response_finish(connection);
+    EnqueueEvent(NO_PARAM_ACTION_PTR(mpd_run_previous));
 }
 
-std::vector<char> MpdClientWrapper::LoadAlbumArtSync(const std::string &uri) const
+void MpdClientWrapper::SeekToSeconds(float s, bool relative)
 {
-    return LoadAlbumArtSyncImpl(uri, &mpd_send_albumart);
+    EnqueueEvent(new SeekAction(s, relative));
 }
 
-std::vector<char> MpdClientWrapper::ReadPictureSync(const std::string &uri) const
+void MpdClientWrapper::SetVolume(int volume)
 {
-    return LoadAlbumArtSyncImpl(uri, &mpd_send_readpicture);
+    EnqueueEvent(new ChangeVolumeAction(volume, ChangeVolumeAction::Mode::Set));
 }
 
-std::vector<char> MpdClientWrapper::LoadAlbumArtSyncImpl(const std::string &uri, bool (*sendFunction) (mpd_connection *, const char *, unsigned)) const
+void MpdClientWrapper::ChangeVolume(int by)
 {
-    sendFunction(connection, uri.c_str(), 0);
-    auto sizePair = mpd_recv_pair(connection);
-
-    if (!sizePair)
-    {
-        mpd_connection_clear_error(connection);
-        return {};
-    }
-
-    auto buffer = std::vector<char>();
-    buffer.resize(std::stoi(sizePair->value));
-    mpd_return_pair(connection, sizePair);
-
-    int read = 0;
-    int position = 0;
-
-    do
-    {
-        read = mpd_recv_albumart(connection, buffer.data() + position, buffer.capacity());
-
-        if (read == -1)
-        {
-            mpd_connection_clear_error(connection);
-            return {};
-        }
-
-        mpd_response_finish(connection);
-        position += read;
-        if (read > 0)
-        {
-            sendFunction(connection, uri.c_str(), position);
-        }
-    } while (read > 0);
-
-    return buffer;
+    EnqueueEvent(new ChangeVolumeAction(by, ChangeVolumeAction::Mode::ChangeBy));
 }
 
-const MpdClientWrapper::MpdStatusPtr &MpdClientWrapper::GetStatus()
-{
-    ThrowIfNotConnected();
 
-    if (cache.status == nullptr)
-    {
-        cache.status = {mpd_run_status(connection), &mpd_status_free};
-    }
-    
-    return cache.status;
+std::future<std::vector<std::unique_ptr<ImpyD::TitleFormatting::ITagged>>> MpdClientWrapper::List(
+    std::vector<mpd_tag_type> groups,
+    std::vector<std::unique_ptr<ImpyD::Mpd::IFilterGenerator> > filters)
+{
+    auto event = new ListAction(std::move(groups), std::move(filters));
+    auto future = event->GetFuture();
+    EnqueueEvent(event);
+    return future;
 }
 
-std::vector<MpdSongWrapper> MpdClientWrapper::ReceiveSongList() const
+std::future<std::vector<std::unique_ptr<ImpyD::TitleFormatting::ITagged>>> MpdClientWrapper::Find(
+    std::vector<std::unique_ptr<ImpyD::Mpd::IFilterGenerator>> filters, mpd_tag_type sort)
 {
-    std::vector<MpdSongWrapper> list;
-
-    auto curSong = mpd_recv_song(connection);
-    while (curSong != nullptr)
-    {
-        list.emplace_back(curSong);
-        curSong = mpd_recv_song(connection);
-    }
-
-    return list;
+    auto event = new FindAction(std::move(filters), sort, false);
+    auto future = event->GetFuture();
+    EnqueueEvent(event);
+    return future;
 }
 
-void MpdClientWrapper::Poll()
+void MpdClientWrapper::FindAddQueue(std::vector<std::unique_ptr<ImpyD::Mpd::IFilterGenerator>> filters, mpd_tag_type sort)
 {
-    assert(!noIdleMode);
-    if (!ReceiveIdle())
-    {
-        mpd_send_idle(connection);
-    }
+    EnqueueEvent(new FindAction(std::move(filters), sort, true));
+}
+
+std::future<MpdClientWrapper::MpdStatusPtr> MpdClientWrapper::GetStatus()
+{
+    auto action = new NoParameterPromiseAction<MpdStatusPtr>([](mpd_connection *c) -> MpdStatusPtr {return {mpd_run_status(c), mpd_status_free};});
+    auto future = action->GetFuture();
+    EnqueueEvent(action);
+    return future;
+}
+
+void MpdClientWrapper::EnqueueEvent(IClientAction *event)
+{
+    eventsMutex.lock();
+
+    events.emplace(event);
+
+    eventsMutex.unlock();
+    eventAddedConvar.notify_one();
 }

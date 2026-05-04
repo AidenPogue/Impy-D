@@ -1,7 +1,11 @@
 #include "MainWindow.hpp"
 
+#include <GLFW/glfw3.h>
+
 #include "imgui_internal.h"
+#include "Utils.hpp"
 #include "PanelFactory/PanelRegistry.hpp"
+#include "TitleFormatting/TitleFormatter.hpp"
 
 namespace ImpyD
 {
@@ -59,10 +63,10 @@ namespace ImpyD
         }
     }
 
-    void MainWindow::CreatePanelById(MpdClientWrapper &client, const std::string &id)
+    void MainWindow::CreatePanelById(Context &context, const std::string &id)
     {
         auto panel = PanelFactory::Registry::CreatePanelById(id, nextPanelId++);
-        panel->InitState(client);
+        panel->InitState(context);
 
         if (panel->GetPanelFlags() & PanelFlags_DrawEarly)
         {
@@ -74,22 +78,28 @@ namespace ImpyD
         }
     }
 
-    void MainWindow::Draw(MpdClientWrapper &client)
+    void MainWindow::SetWindowTitle(Context &context)
     {
-        // bool idle = false;
-        // if (!panelsToCreate.empty())
-        // {
-        //     client.BeginNoIdle();
-        //     idle = true;
-        // }
+        auto s = songFuture.get();
+        if (!s)
+        {
+            return;
+        }
+
+        glfwSetWindowTitle(glfwGetCurrentContext(), TitleFormatting::FormatITagged(*s, context.GetConfig().interface.windowTitleFormat).c_str());
+    }
+
+    void MainWindow::Draw(Context &context)
+    {
+        if (Utils::IsReady(songFuture))
+        {
+            SetWindowTitle(context);
+        }
+
         for (const auto &id : panelsToCreate)
         {
-            CreatePanelById(client, id);
+            CreatePanelById(context, id);
         }
-        // if (idle)
-        // {
-        //     client.EndNoIdle();
-        // }
 
         panelsToCreate.clear();
 
@@ -98,7 +108,7 @@ namespace ImpyD
         DrawFileMenu();
         DrawLayoutMenu();
 
-        if (!client.GetIsConnected())
+        if (!context.GetClient().GetIsConnected())
         {
             ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(2, 2));
             if (ImGui::BeginViewportSideBar("SatusBar", ImGui::GetWindowViewport(), ImGuiDir_Down, 24,  ImGuiWindowFlags_NoScrollWithMouse | ImGuiWindowFlags_NoScrollbar))
@@ -114,25 +124,20 @@ namespace ImpyD
 
         for (const auto &panel : panels)
         {
-            panel->Draw(client);
+            panel->Draw(context);
         }
     }
 
-    void MainWindow::SendIdleEventToPanels(MpdClientWrapper &client, mpd_idle event) const
+    void MainWindow::SendIdleEventToPanels(Context &context, mpd_idle event)
     {
-        bool idle = false;
-        if (!panels.empty())
+        if (event & MPD_IDLE_PLAYER)
         {
-            client.BeginNoIdle();
-            idle = true;
+            songFuture = context.GetClient().GetCurrentSong();
         }
+
         for (const auto &panel : panels)
         {
-            panel->OnIdleEvent(client, event);
-        }
-        if (idle)
-        {
-            client.EndNoIdle();
+            panel->OnIdleEvent(context, event);
         }
     }
 } // ImpyD

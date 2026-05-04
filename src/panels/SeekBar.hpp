@@ -1,6 +1,7 @@
 #pragma once
 
 #include "PanelBase.hpp"
+#include "../Utils.hpp"
 #include "../PanelFactory/RegisterPanel.hpp"
 
 namespace ImpyD
@@ -12,30 +13,43 @@ namespace ImpyD
         double elapsedSecondsSetAtTime = 0;
         float currentElapsedSeconds = 0;
         float currentDuration = 0;
-
+        std::string currentDurationString;
         float currentSeek = -1;
+
+        //Show remaining time instead of elapsed time.
+        bool showRemainingTime = false;
 
         mpd_state currentState = MPD_STATE_STOP;
 
-        void SetState(const MpdClientWrapper::MpdSongPtr &song, const MpdClientWrapper::MpdStatusPtr &status);
+        std::future<std::unique_ptr<MpdSongWrapper>> songFuture;
+        std::future<MpdClientWrapper::MpdStatusPtr> statusFuture;
+
+
+
+        void GetFutures(Context &context);
+        void CheckFutures();
+
+        void SetState(const std::unique_ptr<MpdSongWrapper> &song, const MpdClientWrapper::MpdStatusPtr &status);
 
     public:
         IMPYD_REGISTER_PANEL_FactoryFunc(SeekBar)
         IMPYD_REGISTER_PANEL_GetFactoryName("Seekbar")
 
         SeekBar(int panelId)
-            : PanelBase(panelId)
+            : PanelBase(panelId), currentDurationString(Utils::SecondsToDurationString(0))
         {
         }
 
         ~SeekBar() override;
 
-        void DrawContents(MpdClientWrapper &client) override;
+        void DrawContents(Context &context) override;
 
-        void OnIdleEvent(MpdClientWrapper &client, mpd_idle event) override;
+        void OnIdleEvent(Context &context, mpd_idle event) override;
 
-        void InitState(MpdClientWrapper &client) override;
+        void InitState(Context &context) override;
 
         std::string PanelName() override;
+
+        void DrawContextMenu(Context &context) override;
     };
 }

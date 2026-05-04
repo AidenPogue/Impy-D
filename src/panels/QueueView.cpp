@@ -19,9 +19,9 @@ namespace ImpyD
         SongTableColumn("album", "Album", "%album%"),
     };
 
-    void QueueView::UpdateQueue(MpdClientWrapper &client)
+    void QueueView::UpdateQueue(std::vector<std::unique_ptr<TitleFormatting::ITagged>> songs)
     {
-        currentQueue = client.GetQueue();
+        currentQueue = std::move(songs);
         cellValueCache.resize(currentQueue.size());
         for (auto &row : cellValueCache)
         {
@@ -29,7 +29,7 @@ namespace ImpyD
         }
     }
 
-    void QueueView::CacheRowIfNeeded(MpdSongWrapper &song, const std::vector<SongTableColumn> &columns,
+    void QueueView::CacheRowIfNeeded(std::unique_ptr<TitleFormatting::ITagged> &song, const std::vector<SongTableColumn> &columns,
                                      std::vector<std::string> &rowCache)
     {
         if (rowCache.size() == columns.size())
@@ -41,25 +41,30 @@ namespace ImpyD
 
         for (const auto &column : columns)
         {
-            rowCache.push_back(TitleFormatting::FormatITagged(song, column.format));
+            rowCache.push_back(TitleFormatting::FormatITagged(*song, column.format));
         }
     }
 
-    void QueueView::DrawContents(MpdClientWrapper &client)
+    void QueueView::DrawContents(Context &context)
     {
+        if (Utils::IsReady(queueFuture))
+        {
+            UpdateQueue(queueFuture.get());
+        }
+
+        auto &client = context.GetClient();
+
         //Buttons
         if (ImGui::Button("Clear"))
         {
-            client.BeginNoIdle();
             client.ClearQueue();
-            client.EndNoIdle();
         }
+
         ImGui::SameLine();
+
         if (ImGui::Button("Randomize"))
         {
-            client.BeginNoIdle();
             client.RandomizeQueue();
-            client.EndNoIdle();
         }
 
         ImGuiListClipper clipper;
@@ -78,8 +83,8 @@ namespace ImpyD
             {
                 for (int i = clipper.DisplayStart; i < clipper.DisplayEnd; i++)
                 {
-                    auto song = currentQueue[i];
-                    auto songId = song.GetId();
+                    auto &song = currentQueue[i];
+                    auto songId = song->GetId();
                     auto isCurrentSong = songId == currentSongId;
                     if (isCurrentSong)
                     {
@@ -104,9 +109,7 @@ namespace ImpyD
                                 && !ImGui::IsMouseDown(0)
                             )
                             {
-                                client.BeginNoIdle();
                                 client.PlayId(songId);
-                                client.EndNoIdle();
                             }
                             ImGui::PopID();
                         } else
@@ -125,30 +128,27 @@ namespace ImpyD
         }
     }
 
-    void QueueView::SetState(MpdClientWrapper &client)
+    void QueueView::SetState(Context &context)
     {
-        currentSongId = mpd_status_get_song_id(client.GetStatus().get());
+        //currentSongId = mpd_status_get_song_id(client.GetStatus().get());
     }
 
-    void QueueView::OnIdleEvent(MpdClientWrapper &client, mpd_idle event)
+    void QueueView::OnIdleEvent(Context &context, mpd_idle event)
     {
         if (event & MPD_IDLE_QUEUE)
         {
-            UpdateQueue(client);
+            queueFuture = context.GetClient().GetQueue();
         }
         if (event & MPD_IDLE_PLAYER)
         {
-            SetState(client);
+            SetState(context);
         }
     }
 
-    void QueueView::InitState(MpdClientWrapper &client)
+    void QueueView::InitState(Context &context)
     {
-
-        client.BeginNoIdle();
-        UpdateQueue(client);
-        SetState(client);
-        client.EndNoIdle();
+        queueFuture = context.GetClient().GetQueue();
+        SetState(context);
     }
 
     std::string QueueView::PanelName()

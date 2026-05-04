@@ -6,6 +6,7 @@
 #include "Mpd/MpdClientWrapper.hpp"
 #include "Mpd/MpdIdleEventData.hpp"
 #include "panels/PanelBase.hpp"
+#include "Context.hpp"
 
 namespace ImpyD
 {
@@ -15,19 +16,23 @@ namespace ImpyD
         std::list<std::unique_ptr<PanelBase>> panels;
         int nextPanelId = 0;
 
+        std::future<std::unique_ptr<MpdSongWrapper>> songFuture;
+
         std::vector<std::string> panelsToCreate;
 
         void DrawLayoutMenu();
         void DrawFileMenu();
 
-        void CreatePanelById(MpdClientWrapper &client, const std::string &id);
+        void CreatePanelById(Context &context, const std::string &id);
+
+        void SetWindowTitle(Context &context);
 
     public:
         MainWindow();
 
-        void Draw(MpdClientWrapper &client);
+        void Draw(Context &context);
 
-        void SendIdleEventToPanels(MpdClientWrapper &client, mpd_idle event) const;
+        void SendIdleEventToPanels(Context &context, mpd_idle event);
     };
 } // ImpyD
 
