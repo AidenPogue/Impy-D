@@ -1,4 +1,8 @@
 #include "PanelBase.hpp"
+#include "misc/cpp/imgui_stdlib.h"
+
+#define CHANGE_TITLE_MODAL_ID "Change Title"
+#define OPTIONS_MODAL_ID "Options"
 
 ImpyD::PanelBase::PanelBase(int panelId) : panelId(panelId)
 {
@@ -16,29 +20,64 @@ bool ImpyD::PanelBase::ShouldClose() const
 
 void ImpyD::PanelBase::SetTitle(const std::string &title)
 {
-    this->title = title + "###" + std::to_string(panelId);
+    this->titleWithId = title + "###" + std::to_string(panelId);
+    this->title = std::string(title);
 }
 
 void ImpyD::PanelBase::Draw(Context &context)
 {
     //Cant do this in constructor because PanelName is pure virtual
-    if (title.empty())
+    if (titleWithId.empty())
     {
         SetTitle(PanelName());
     }
 
-    if (ImGui::Begin(title.c_str(), &isOpen, windowFlags) || GetPanelFlags() & PanelFlags_AlwaysDraw)
+    if (ImGui::Begin(titleWithId.c_str(), &isOpen, windowFlags) || GetPanelFlags() & PanelFlags_AlwaysDraw)
     {
         if (ImGui::BeginPopupContextItem())
         {
             if (ImGui::MenuItem("Change Title"))
             {
+                shouldOpenChangeTitleModal = true;
             }
             DrawContextMenu(context);
             ImGui::EndPopup();
         }
         DrawContents(context);
     }
+
+    static std::string editingTitle;
+
+    if (shouldOpenChangeTitleModal)
+    {
+        shouldOpenChangeTitleModal = false;
+        editingTitle = title;
+        ImGui::OpenPopup(CHANGE_TITLE_MODAL_ID);
+    }
+
+    if (ImGui::BeginPopupModal(CHANGE_TITLE_MODAL_ID, nullptr, ImGuiWindowFlags_AlwaysAutoResize))
+    {
+        ImGui::SetItemDefaultFocus();
+        if (ImGui::InputText("Title", &editingTitle))
+        {
+        }
+
+        if (ImGui::Button("Ok"))
+        {
+            SetTitle(editingTitle);
+            ImGui::CloseCurrentPopup();
+        }
+
+        ImGui::SameLine();
+
+        if (ImGui::Button("Cancel"))
+        {
+            ImGui::CloseCurrentPopup();
+        }
+
+        ImGui::EndPopup();
+    }
+
     ImGui::End();
 
 

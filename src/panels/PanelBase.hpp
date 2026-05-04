@@ -1,4 +1,5 @@
 #pragma once
+
 #include "imgui.h"
 #include "PanelFlags.hpp"
 #include "../Mpd/MpdClientWrapper.hpp"
@@ -13,9 +14,14 @@ namespace ImpyD
         bool isOpen = true;
 
         int callbackId;
+        std::string titleWithId;
         std::string title;
+
     protected:
         const int panelId = -1;
+
+        bool shouldOpenChangeTitleModal = false;
+
         ImGuiWindowFlags windowFlags = ImGuiWindowFlags_None;
         virtual void DrawContents(Context &context) {}
 
