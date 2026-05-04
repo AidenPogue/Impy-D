@@ -27,6 +27,8 @@ namespace ImpyD
             peak -= useStyle->peakFallSpeed * context.GetDeltaTime();
         }
 
+        value = std::clamp(value, 0.0f, 1.0f);
+
         if (value > peak)
         {
             isFalling = false;
