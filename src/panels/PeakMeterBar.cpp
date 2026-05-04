@@ -27,7 +27,9 @@ namespace ImpyD
             peak -= useStyle->peakFallSpeed * context.GetDeltaTime();
         }
 
+        value = std::lerp(lastValue, value, useStyle->valueSmoothT);
         value = std::clamp(value, 0.0f, 1.0f);
+        lastValue = value;
 
         if (value > peak)
         {

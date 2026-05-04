@@ -10,18 +10,14 @@ void ImpyD::VolumeMeter::DrawContents(Context &context)
 {
     auto sampleWindow = 200;
 
-    int lTarget = 0, rTarget = 0;
-    //left = right = 0;
+    int left = 0, right = 0;
     for (int i = 0; i < sampleWindow * 2; i += 2)
     {
         auto idx = context.GetFifoReader().GetFrontIndex() - i;
 
-        lTarget = std::max(std::abs(context.GetFifoReader().buffer[idx % context.GetFifoReader().buffer.size()]), lTarget);
-        rTarget = std::max(std::abs(context.GetFifoReader().buffer[(idx - 1) % context.GetFifoReader().buffer.size()]), rTarget);
+        left = std::max(std::abs(context.GetFifoReader().buffer[idx % context.GetFifoReader().buffer.size()]), left);
+        right = std::max(std::abs(context.GetFifoReader().buffer[(idx - 1) % context.GetFifoReader().buffer.size()]), right);
     }
-
-    left = std::lerp(left, lTarget, .25f);
-    right = std::lerp(right, rTarget, .25f);
 
     auto lDBFS = 20 * std::log10(left / 32768.0f), rDBFS = 20 * std::log10(right / 32768.0f);
 

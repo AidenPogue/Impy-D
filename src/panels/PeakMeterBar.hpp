@@ -19,6 +19,9 @@ namespace ImpyD
             float peakWidth = 1;
             bool showPeak = true;
 
+            // (0, 1] value used as the t value for a lerp between the previous and current value to smooth it out.
+            float valueSmoothT = .3f;
+
             bool reverse = false;
         };
 
@@ -26,6 +29,7 @@ namespace ImpyD
 
     private:
         float peak = -1;
+        float lastValue = 0;
         bool isFalling = true;
         double peakTime = 0;
 

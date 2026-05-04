@@ -10,8 +10,6 @@ namespace ImpyD
 {
     class VolumeMeter : public PanelBase, PanelFactory::RegisterPanel<VolumeMeter>
     {
-        int channel = 0;
-        int left, right;
         PeakMeterBar leftBar, rightBar;
 
     public:
