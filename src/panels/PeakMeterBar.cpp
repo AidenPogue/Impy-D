@@ -6,9 +6,25 @@ namespace ImpyD
 
     const PeakMeterBar::Style PeakMeterBar::defaultStyle;
 
-    float LerpMainAxisValue(float min, float max, float value, bool reverse)
+    struct MinMax
     {
-        return std::lerp(min, max, reverse ? 1 - value : value);
+        ImVec2 min, max;
+    };
+
+    MinMax LerpRect(ImVec2 containerMin, ImVec2 containerMax, float t1, float t2, bool vertical)
+    {
+        if (vertical)
+        {
+            auto min = ImVec2(containerMin.x, std::lerp(containerMin.y, containerMax.y, t1));
+            auto max = ImVec2(containerMax.x, std::lerp(containerMin.y, containerMax.y, t2));
+            return {min, max};
+        }
+        else
+        {
+            auto min = ImVec2(std::lerp(containerMin.x, containerMax.x, t1), containerMin.y);
+            auto max = ImVec2(std::lerp(containerMin.x, containerMax.x, t2), containerMax.y);
+            return {min, max};
+        }
     }
 
     void PeakMeterBar::Draw(Context &context, ImVec2 min, ImVec2 max, float value, bool vertical)
@@ -42,39 +58,25 @@ namespace ImpyD
         auto round = useStyle->rounding;
         drawList->AddRectFilled(min, max, useStyle->backgroundColor, round);
 
-        auto fillMax = max, fillMin = min;
+        MinMax fillSize, peakSize;
 
-        if (!useStyle->reverse)
+        if (useStyle->reverse)
         {
-            if (vertical)
-            {
-                fillMax.y = std::lerp(min.y, max.y, value);
-            }
-            else
-            {
-                fillMax.x = std::lerp(min.x, max.x, value);
-            }
+            fillSize = LerpRect(min, max, 1 - value, 1, vertical);
         }
         else
         {
-            if (vertical)
-            {
-                fillMin.y = std::lerp(min.y, max.y, 1 - value);
-            }
-            else
-            {
-                fillMin.x = std::lerp(min.x, max.x, 1 - value);
-            }
-
+            fillSize = LerpRect(min, max, 0, value, vertical);
         }
 
-        drawList->AddRectFilled(fillMin, fillMax, useStyle->foregroundColor, round);
+
+        drawList->AddRectFilled(fillSize.min, fillSize.max, useStyle->foregroundColor, round);
 
         auto peakMin = min;
         peakMin.x = std::lerp(min.x, max.x, peak);
         auto peakMax = peakMin;
         peakMax.x += useStyle->peakWidth;
         peakMax.y = max.y;
-        drawList->AddRectFilled(peakMin, peakMax, useStyle->peakColor);
+        //drawList->AddRectFilled(peakMin, peakMax, useStyle->peakColor);
     }
 } // ImpyD

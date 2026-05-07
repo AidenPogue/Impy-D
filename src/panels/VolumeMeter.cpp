@@ -1,6 +1,8 @@
 #include "VolumeMeter.hpp"
 #include <poll.h>
 
+#include "../Utils.hpp"
+
 std::string ImpyD::VolumeMeter::PanelName()
 {
     return GetFactoryName();
@@ -19,10 +21,7 @@ void ImpyD::VolumeMeter::DrawContents(Context &context)
         right = std::max(std::abs(context.GetFifoReader().buffer[(idx - 1) % context.GetFifoReader().buffer.size()]), right);
     }
 
-    auto lDBFS = 20 * std::log10(left / 32768.0f), rDBFS = 20 * std::log10(right / 32768.0f);
-
-    const float minDBFS = -60;
-    auto percentL = (lDBFS - minDBFS) / (-minDBFS), percentR = (rDBFS - minDBFS) / (-minDBFS);
+    auto percentL = Utils::AmplitudeToDBFSPercentage(left / 32768.0f), percentR = Utils::AmplitudeToDBFSPercentage(right / 32768.0f);
 
     auto tl1 = ImGui::GetCursorScreenPos();
     auto br1 = ImVec2(tl1.x + ImGui::GetContentRegionAvail().x, tl1.y + ImGui::GetContentRegionAvail().y / 2);
