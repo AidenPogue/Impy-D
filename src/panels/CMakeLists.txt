@@ -16,4 +16,5 @@ target_sources(im-mpd
         Settings.cpp
         VolumeMeter.cpp
         PeakMeterBar.cpp
+        SpectrumVisualizer.cpp
 )
