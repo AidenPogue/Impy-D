@@ -4,6 +4,7 @@
 #include "Utils.hpp"
 
 #include <chrono>
+#include <cmath>
 
 bool ImpyD::Utils::UploadTexture(const void* data, int width, int height, GLuint* out_texture)
 {
@@ -68,4 +69,14 @@ std::vector<std::unique_ptr<ImpyD::TitleFormatting::ITagged>> ImpyD::Utils::Rece
     }
 
     return list;
+}
+
+float ImpyD::Utils::AmplitudeToDBFS(float amplitude)
+{
+    return 20 * std::log10(amplitude);
+}
+
+float ImpyD::Utils::AmplitudeToDBFSPercentage(float amplitude, float minDBFS)
+{
+    return (AmplitudeToDBFS(amplitude) - minDBFS) / (-minDBFS);
 }

@@ -47,7 +47,8 @@ namespace ImpyD::Utils
         return future.valid() && future.wait_for(std::chrono::seconds(0)) == std::future_status::ready;
     }
 
-
+    float AmplitudeToDBFS(float amplitude);
+    float AmplitudeToDBFSPercentage(float amplitude, float minDBFS = -60);
 
 }
 

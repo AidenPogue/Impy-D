@@ -54,6 +54,7 @@ target_link_libraries(im-mpd
         ${FC_LIBRARIES}
         mpdclient
         GL
+        fftw3
 )
 
 # target_include_directories(im-mpd PUBLIC ${GLFW_INCLUDE_DIRS})
