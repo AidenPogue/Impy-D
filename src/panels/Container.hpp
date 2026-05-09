@@ -16,13 +16,16 @@ namespace ImpyD
         IMPYD_REGISTER_PANEL_FactoryFunc(Container)
         IMPYD_REGISTER_PANEL_GetFactoryName("Container")
 
-        Container(int panelId) : PanelBase(panelId) {}
+        explicit Container(int panelId);
 
         void DrawContents(Context &context) override;
 
         std::string PanelName() override;
 
         PanelFlags GetPanelFlags() override;
+
+    protected:
+        int PushStyleVars() override;
     };
 }
 
