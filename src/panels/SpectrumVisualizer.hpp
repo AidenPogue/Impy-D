@@ -12,10 +12,12 @@ namespace ImpyD
         std::vector<PeakMeterBar> bars;
         PeakMeterBar::Style barStyle;
 
-        int fftSize = 2048;
+        int fftSize = 256;
         double *fftIn;
         fftw_complex *fftOut;
         fftw_plan plan;
+
+        double minFreq = 25, maxFreq = 20000;
 
     public:
         explicit SpectrumVisualizer(int panelId);

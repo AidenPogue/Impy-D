@@ -18,7 +18,7 @@ namespace ImpyD
     void SpectrumVisualizer::DrawContents(Context &context)
     {
         auto front = context.GetFifoReader().GetFrontIndex();
-        for (int i = 0; i < fftSize * 2; ++i)
+        for (int i = 0; i < fftSize * 2; i += 2)
         {
             auto &fifo = context.GetFifoReader();
             auto l = fifo.buffer[(front - i) % fifo.buffer.size()] / 32768.0, r = fifo.buffer[(front - i - 1) % fifo.buffer.size()] / 32768.0;
@@ -38,9 +38,9 @@ namespace ImpyD
             auto max = ImVec2(start.x + (i + 1) * barWidth, start.y + avail.y);
 
             auto percent = (double)i / bars.size();
-            percent *= percent;
 
-            auto freq = (percent * bars.size());
+            auto fftSeconds = (double)fftSize / context.GetConfig().visualizer.fifoSampleRate;
+            auto freq = minFreq * fftSeconds * std::pow((maxFreq * fftSeconds) / (minFreq * fftSeconds), percent);
 
             auto floor = int(std::floor(freq)), ceil = int(std::ceil(freq));
             auto t = freq - floor;
