@@ -25,6 +25,9 @@ namespace ImpyD
         ImGuiWindowFlags windowFlags = ImGuiWindowFlags_None;
         virtual void DrawContents(Context &context) {}
 
+        // Pushes any style vars for this window and returns how many were pushed.
+        virtual int PushStyleVars() {return 0;}
+
         PanelBase(int panelId);
 
     public:

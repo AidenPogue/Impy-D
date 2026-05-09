@@ -32,7 +32,11 @@ void ImpyD::PanelBase::Draw(Context &context)
         SetTitle(PanelName());
     }
 
-    if (ImGui::Begin(titleWithId.c_str(), &isOpen, windowFlags) || GetPanelFlags() & PanelFlags_AlwaysDraw)
+    auto styleVarCount = PushStyleVars();
+    auto windowOpen = ImGui::Begin(titleWithId.c_str(), &isOpen, windowFlags) || GetPanelFlags() & PanelFlags_AlwaysDraw;
+    ImGui::PopStyleVar(styleVarCount);
+
+    if (windowOpen)
     {
         if (ImGui::BeginPopupContextItem())
         {
