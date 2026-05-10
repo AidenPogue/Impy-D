@@ -38,7 +38,6 @@ void ImpyD::SeekBar::DrawContents(Context &context)
 
     if (ImGui::IsItemDeactivatedAfterEdit())
     {
-        std::cout << "Seeking to " << currentSeek << std::endl;
         context.GetClient().SeekToSeconds(currentSeek, false);
     }
 

@@ -18,7 +18,6 @@ namespace ImpyD
     std::vector<char> AlbumArtClient::LoadAlbumArtSyncImpl(const std::string &uri, bool (*sendFunction) (mpd_connection *, const char *, unsigned))
     {
         auto connection = connectionManager.GetConnection();
-        std::cout << uri << std::endl;
         sendFunction(connection, uri.c_str(), 0);
         auto sizePair = mpd_recv_pair(connection);
 

@@ -89,7 +89,6 @@ void ImpyD::PanelBase::Draw(Context &context)
 
 ImpyD::PanelBase::~PanelBase()
 {
-    printf("Desctrocota\n");
 }
 
 void ImpyD::PanelBase::DrawContextMenu(Context &context)

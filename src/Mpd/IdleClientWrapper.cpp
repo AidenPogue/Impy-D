@@ -34,7 +34,6 @@ namespace ImpyD::Mpd
             if (ret > 0 && pfd.revents & (POLLIN | POLLERR | POLLHUP))
             {
                 auto val = mpd_recv_idle(conn, false);
-                std::cout << "Thread: " << mpd_idle_name(val) << std::endl;
                 queuedEvents.fetch_or(val);
             }
 
