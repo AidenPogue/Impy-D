@@ -23,10 +23,9 @@ namespace ImpyD
         static void CacheRowIfNeeded(std::unique_ptr<TitleFormatting::ITagged> &song, const std::vector<SongTableColumn> &columns, std::vector<std::string> &rowCache);
 
     public:
-        IMPYD_REGISTER_PANEL_FactoryFunc(QueueView)
-        IMPYD_REGISTER_PANEL_GetFactoryName("Queue View")
+        IMPYD_REGISTER_PANEL_FUNCS(QueueView, IMPYD_BUILTIN_ID_PREFIX "queue", "Queue View");
 
-        QueueView(int panelId) : PanelBase(panelId) {}
+        explicit QueueView(int panelId) : PanelBase(panelId) {}
 
         void DrawContents(Context &context) override;
 

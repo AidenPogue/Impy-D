@@ -30,8 +30,7 @@ namespace ImMPD
         {
         }
 
-        IMPYD_REGISTER_PANEL_FactoryFunc(SimpleAlbumArt);
-        IMPYD_REGISTER_PANEL_GetFactoryName("Simple Album Art");
+        IMPYD_REGISTER_PANEL_FUNCS(SimpleAlbumArt, IMPYD_BUILTIN_ID_PREFIX "simple-album-art", "Simple Album Art");
 
         std::string PanelName() override;
 

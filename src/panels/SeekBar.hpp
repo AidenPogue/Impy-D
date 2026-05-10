@@ -32,10 +32,9 @@ namespace ImpyD
         void SetState(const std::unique_ptr<MpdSongWrapper> &song, const MpdClientWrapper::MpdStatusPtr &status);
 
     public:
-        IMPYD_REGISTER_PANEL_FactoryFunc(SeekBar)
-        IMPYD_REGISTER_PANEL_GetFactoryName("Seekbar")
+        IMPYD_REGISTER_PANEL_FUNCS(SeekBar, IMPYD_BUILTIN_ID_PREFIX "seekbar", "Seekbar");
 
-        SeekBar(int panelId)
+        explicit SeekBar(int panelId)
             : PanelBase(panelId), currentDurationString(Utils::SecondsToDurationString(0))
         {
         }

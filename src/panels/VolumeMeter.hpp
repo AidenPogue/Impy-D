@@ -18,8 +18,7 @@ namespace ImpyD
         {
         }
 
-        IMPYD_REGISTER_PANEL_FactoryFunc(VolumeMeter);
-        IMPYD_REGISTER_PANEL_GetFactoryName("Volume Meter");
+        IMPYD_REGISTER_PANEL_FUNCS(VolumeMeter, IMPYD_BUILTIN_ID_PREFIX "volume-meter", "Volume Meter");
 
         std::string PanelName() override;
 

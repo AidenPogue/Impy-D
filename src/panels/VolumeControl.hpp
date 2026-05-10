@@ -17,10 +17,9 @@ namespace ImpyD {
         void SetState(const MpdClientWrapper::MpdStatusPtr &status);
 
     public:
-        IMPYD_REGISTER_PANEL_FactoryFunc(VolumeControl)
-        IMPYD_REGISTER_PANEL_GetFactoryName("Volume Control Slider")
+        IMPYD_REGISTER_PANEL_FUNCS(VolumeControl, IMPYD_BUILTIN_ID_PREFIX "volume-control", "Volume Control Slider");
 
-        VolumeControl(int panelId);
+        explicit VolumeControl(int panelId);
 
         void DrawContents(Context &context) override;
 

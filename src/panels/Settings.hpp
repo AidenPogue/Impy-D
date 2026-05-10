@@ -15,9 +15,7 @@ namespace ImpyD::Panels
         {
         }
 
-        IMPYD_REGISTER_PANEL_FactoryFunc(Settings);
-        IMPYD_REGISTER_PANEL_GetFactoryName("Settings");
-
+        IMPYD_REGISTER_PANEL_FUNCS(Settings, IMPYD_BUILTIN_ID_PREFIX "settings", "Settings");
         std::string PanelName() override;
 
     protected:

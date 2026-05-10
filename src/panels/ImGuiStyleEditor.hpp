@@ -9,8 +9,7 @@ namespace ImpyD
     {
     public:
         explicit ImGuiStyleEditor(int panelId);
-        IMPYD_REGISTER_PANEL_FactoryFunc(ImGuiStyleEditor);
-        IMPYD_REGISTER_PANEL_GetFactoryName("ImGui Style Editor");
+        IMPYD_REGISTER_PANEL_FUNCS(ImGuiStyleEditor, IMPYD_BUILTIN_ID_PREFIX "imgui-style-editor", "ImGui Style Editor");
 
         std::string PanelName() override;
 

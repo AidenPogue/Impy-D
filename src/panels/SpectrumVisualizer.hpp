@@ -22,8 +22,7 @@ namespace ImpyD
     public:
         explicit SpectrumVisualizer(int panelId);
 
-        IMPYD_REGISTER_PANEL_FactoryFunc(SpectrumVisualizer);
-        IMPYD_REGISTER_PANEL_GetFactoryName("Spectrum Visualizer");
+        IMPYD_REGISTER_PANEL_FUNCS(SpectrumVisualizer, IMPYD_BUILTIN_ID_PREFIX "spectrum", "Spectrum Visualizer");
 
         std::string PanelName() override;
 

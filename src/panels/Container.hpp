@@ -13,8 +13,7 @@ namespace ImpyD
     class Container : public PanelBase, PanelFactory::RegisterPanel<Container>
     {
     public:
-        IMPYD_REGISTER_PANEL_FactoryFunc(Container)
-        IMPYD_REGISTER_PANEL_GetFactoryName("Container")
+        IMPYD_REGISTER_PANEL_FUNCS(Container, IMPYD_BUILTIN_ID_PREFIX "container", "Container");
 
         explicit Container(int panelId);
 

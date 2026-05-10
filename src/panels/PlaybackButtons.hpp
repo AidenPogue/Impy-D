@@ -10,10 +10,9 @@ namespace ImpyD
     {
     private:
     public:
-        IMPYD_REGISTER_PANEL_FactoryFunc(PlaybackButtonsPanel);
-        IMPYD_REGISTER_PANEL_GetFactoryName("Playback Control Buttons")
+        IMPYD_REGISTER_PANEL_FUNCS(PlaybackButtonsPanel, IMPYD_BUILTIN_ID_PREFIX "playback-buttons", "Playback Control Buttons");
 
-        PlaybackButtonsPanel(int panelId) : PanelBase(panelId) {windowFlags = ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoScrollWithMouse;}
+        explicit PlaybackButtonsPanel(int panelId) : PanelBase(panelId) {windowFlags = ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoScrollWithMouse;}
 
         ~PlaybackButtonsPanel() override;
 
