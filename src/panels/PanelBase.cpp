@@ -44,6 +44,9 @@ void ImpyD::PanelBase::Draw(Context &context)
             {
                 shouldOpenChangeTitleModal = true;
             }
+
+            ImGui::Separator();
+
             DrawContextMenu(context);
             ImGui::EndPopup();
         }
