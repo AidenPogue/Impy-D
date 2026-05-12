@@ -6,10 +6,6 @@
 
 namespace ImpyD
 {
-    SpectrumVisualizer::SpectrumVisualizer(int panelId): PanelBase(panelId)
-    {
-    }
-
     std::string SpectrumVisualizer::PanelName()
     {
         return GetFactoryName();

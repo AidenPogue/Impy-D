@@ -10,7 +10,6 @@ namespace ImpyD
 {
     class MediaLibraryTree : public PanelBase, PanelFactory::RegisterPanel<MediaLibraryTree>
     {
-    private:
         class TreeItem
         {
 
@@ -34,8 +33,6 @@ namespace ImpyD
 
     public:
         IMPYD_REGISTER_PANEL_FUNCS(MediaLibraryTree, IMPYD_BUILTIN_ID_PREFIX "library-tree", "Media Library Tree");
-
-        explicit MediaLibraryTree(int panelId);
 
         std::string PanelName() override;
 

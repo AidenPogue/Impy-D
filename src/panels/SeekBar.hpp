@@ -34,11 +34,6 @@ namespace ImpyD
     public:
         IMPYD_REGISTER_PANEL_FUNCS(SeekBar, IMPYD_BUILTIN_ID_PREFIX "seekbar", "Seekbar");
 
-        explicit SeekBar(int panelId)
-            : PanelBase(panelId), currentDurationString(Utils::SecondsToDurationString(0))
-        {
-        }
-
         ~SeekBar() override;
 
         void DrawContents(Context &context) override;

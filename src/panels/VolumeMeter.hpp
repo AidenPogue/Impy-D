@@ -13,10 +13,6 @@ namespace ImpyD
         PeakMeterBar leftBar, rightBar;
 
     public:
-        explicit VolumeMeter(int panelId)
-            : PanelBase(panelId)
-        {
-        }
 
         IMPYD_REGISTER_PANEL_FUNCS(VolumeMeter, IMPYD_BUILTIN_ID_PREFIX "volume-meter", "Volume Meter");
 

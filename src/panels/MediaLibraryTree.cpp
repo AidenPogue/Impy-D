@@ -86,10 +86,6 @@ namespace ImpyD {
         }
     }
 
-    MediaLibraryTree::MediaLibraryTree(int panelId): PanelBase(panelId)
-    {
-
-    }
 
     std::string MediaLibraryTree::PanelName()
     {

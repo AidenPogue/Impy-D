@@ -6,6 +6,6 @@
 
 namespace ImpyD::PanelFactory
 {
-    using PanelFactoryFunc = std::unique_ptr<PanelBase>(*)(int id);
+    using PanelFactoryFunc = std::unique_ptr<PanelBase>(*)();
 }
 #endif //IM_MPD_PANELFACTORYFUNC_HPP

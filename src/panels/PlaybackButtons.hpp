@@ -8,13 +8,10 @@ namespace ImpyD
 {
     class PlaybackButtonsPanel : public PanelBase, PanelFactory::RegisterPanel<PlaybackButtonsPanel>
     {
-    private:
     public:
         IMPYD_REGISTER_PANEL_FUNCS(PlaybackButtonsPanel, IMPYD_BUILTIN_ID_PREFIX "playback-buttons", "Playback Control Buttons");
 
-        explicit PlaybackButtonsPanel(int panelId) : PanelBase(panelId) {windowFlags = ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoScrollWithMouse;}
-
-        ~PlaybackButtonsPanel() override;
+        PlaybackButtonsPanel() { windowFlags = ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoScrollWithMouse | ImGuiWindowFlags_AlwaysAutoResize; }
 
         void DrawContents(Context &context) override;
 

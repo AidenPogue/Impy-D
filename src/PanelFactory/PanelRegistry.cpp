@@ -22,14 +22,14 @@ namespace ImpyD::PanelFactory
         std::cout << "Registered panel " << info.name << " (" << info.id << ")" << std::endl;
     }
 
-    std::unique_ptr<PanelBase> Registry::CreatePanelById(const std::string &panelId, int windowId)
+    std::unique_ptr<PanelBase> Registry::CreatePanelById(const std::string &panelId)
     {
         if (GetPanelMap().find(panelId) == GetPanelMap().end())
         {
             throw std::runtime_error("Panel \"" + panelId + "\" does not exist.");
         }
 
-        return GetPanelMap().at(panelId).factory(windowId);
+        return GetPanelMap().at(panelId).factory();
     }
 
     const std::unordered_map<std::string, RegisteredPanelInfo>& Registry::GetRegisteredPanels()

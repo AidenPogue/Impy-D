@@ -10,15 +10,15 @@ namespace ImpyD
 {
     class PanelBase
     {
-    private:
         bool isOpen = true;
 
-        int callbackId;
+        //Title of the window with ImGui ID suffix. Don't use for anything else!
         std::string titleWithId;
+        //Title of the window, which may be changed by the user. Use SetTitle()!
         std::string title;
 
     protected:
-        const int panelId = -1;
+        int panelId = -1;
 
         bool shouldOpenChangeTitleModal = false;
 
@@ -28,9 +28,9 @@ namespace ImpyD
         // Pushes any style vars for this window and returns how many were pushed.
         virtual int PushStyleVars() {return 0;}
 
-        PanelBase(int panelId);
-
     public:
+        void Initialize(int panelId);
+
         virtual PanelFlags GetPanelFlags();
 
         virtual std::string PanelName() = 0;
@@ -69,5 +69,7 @@ namespace ImpyD
          * @param context The connected client.
          */
         virtual void DrawContextMenu(Context &context);
+
+        NLOHMANN_DEFINE_TYPE_INTRUSIVE(PanelBase, title);
     };
-} // namespace ImMPD
+}

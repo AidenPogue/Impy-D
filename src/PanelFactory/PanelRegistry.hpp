@@ -15,7 +15,7 @@ namespace ImpyD::PanelFactory
         Registry() = delete;
 
         static void RegisterPanel(const RegisteredPanelInfo &info);
-        static std::unique_ptr<PanelBase> CreatePanelById(const std::string &panelId, int windowId);
+        static std::unique_ptr<PanelBase> CreatePanelById(const std::string &panelId);
         static const std::unordered_map<std::string, RegisteredPanelInfo>& GetRegisteredPanels();
     };
 

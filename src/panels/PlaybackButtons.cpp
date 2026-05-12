@@ -17,8 +17,6 @@ struct PlaybackButton
     }
 };
 
-ImpyD::PlaybackButtonsPanel::~PlaybackButtonsPanel() = default;
-
 void ImpyD::PlaybackButtonsPanel::DrawContents(Context &context)
 {
     auto &client = context.GetClient();

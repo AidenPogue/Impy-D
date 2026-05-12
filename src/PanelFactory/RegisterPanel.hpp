@@ -4,7 +4,7 @@
 #ifndef IM_MPD_REGISTERPANEL_HPP
 #define IM_MPD_REGISTERPANEL_HPP
 
-#define IMPYD_REGISTER_PANEL_FUNCS(typeName, panelId, displayName) static std::unique_ptr<PanelBase> FactoryFunc(int id) {return std::make_unique<typeName>(id);} static const std::string GetFactoryName() {return displayName;} static const std::string GetFactoryId() {return panelId;}
+#define IMPYD_REGISTER_PANEL_FUNCS(typeName, panelId, displayName) static std::unique_ptr<PanelBase> FactoryFunc() {return std::make_unique<typeName>();} static const std::string GetFactoryName() {return displayName;} static const std::string GetFactoryId() {return panelId;}
 
 // Don't use, unless you're me! It would make me very sad
 #define IMPYD_BUILTIN_ID_PREFIX "impy-d.builtin."

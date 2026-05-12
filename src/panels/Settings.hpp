@@ -10,10 +10,6 @@ namespace ImpyD::Panels
         IConfigItem *selectedTopLevelCategory = nullptr;
 
     public:
-        explicit Settings(int panelId)
-            : PanelBase(panelId)
-        {
-        }
 
         IMPYD_REGISTER_PANEL_FUNCS(Settings, IMPYD_BUILTIN_ID_PREFIX "settings", "Settings");
         std::string PanelName() override;

@@ -6,10 +6,6 @@
 
 #include "imgui.h"
 
-ImpyD::Container::Container(int panelId): PanelBase(panelId)
-{
-}
-
 void ImpyD::Container::DrawContents(Context &context)
 {
     //dockspace id can't be 0, and 1 is the main dockspace.

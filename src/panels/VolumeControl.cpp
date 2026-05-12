@@ -13,11 +13,6 @@ namespace ImpyD {
         currentValue = status ? mpd_status_get_volume(status.get()) : -1;
     }
 
-    VolumeControl::VolumeControl(int panelId): PanelBase(panelId)
-    {
-        windowFlags = ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoScrollWithMouse;
-    }
-
     void VolumeControl::DrawContents(Context &context)
     {
         if (Utils::IsReady(statusFuture))

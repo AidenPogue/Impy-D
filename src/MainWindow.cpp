@@ -65,7 +65,7 @@ namespace ImpyD
 
     void MainWindow::CreatePanelById(Context &context, const std::string &id)
     {
-        auto panel = PanelFactory::Registry::CreatePanelById(id, nextPanelId++);
+        auto panel = PanelFactory::Registry::CreatePanelById(id);
         panel->InitState(context);
 
         if (panel->GetPanelFlags() & PanelFlags_DrawEarly)

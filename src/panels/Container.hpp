@@ -15,8 +15,6 @@ namespace ImpyD
     public:
         IMPYD_REGISTER_PANEL_FUNCS(Container, IMPYD_BUILTIN_ID_PREFIX "container", "Container");
 
-        explicit Container(int panelId);
-
         void DrawContents(Context &context) override;
 
         std::string PanelName() override;

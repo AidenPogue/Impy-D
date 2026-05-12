@@ -20,8 +20,6 @@ namespace ImpyD
         double minFreq = 25, maxFreq = 20000;
 
     public:
-        explicit SpectrumVisualizer(int panelId);
-
         IMPYD_REGISTER_PANEL_FUNCS(SpectrumVisualizer, IMPYD_BUILTIN_ID_PREFIX "spectrum", "Spectrum Visualizer");
 
         std::string PanelName() override;

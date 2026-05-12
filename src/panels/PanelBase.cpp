@@ -4,8 +4,21 @@
 #define CHANGE_TITLE_MODAL_ID "Change Title"
 #define OPTIONS_MODAL_ID "Options"
 
-ImpyD::PanelBase::PanelBase(int panelId) : panelId(panelId)
+void ImpyD::PanelBase::Initialize(int panelId)
 {
+    if (panelId < 0)
+    {
+        throw std::invalid_argument("panelId cannot be negative");
+    }
+    if (this->panelId > 0)
+    {
+        throw std::runtime_error("Panel is already initialized with id " + std::to_string(this->panelId));
+    }
+
+    this->panelId = panelId;
+
+    //Make sure titleWithId is set
+    SetTitle(title);
 }
 
 ImpyD::PanelFlags ImpyD::PanelBase::GetPanelFlags()

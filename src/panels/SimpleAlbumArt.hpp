@@ -9,7 +9,6 @@ namespace ImMPD
 {
     class SimpleAlbumArt : public ImpyD::PanelBase, ImpyD::PanelFactory::RegisterPanel<SimpleAlbumArt>
     {
-    private:
         std::future<std::unique_ptr<MpdSongWrapper>> songFuture;
         std::future<ImpyD::Mpd::AlbumArtHelper::Result> artFuture;
 
@@ -25,11 +24,6 @@ namespace ImMPD
         void CheckFutures(ImpyD::Context &context);
 
     public:
-        explicit SimpleAlbumArt(int panelId)
-            : PanelBase(panelId)
-        {
-        }
-
         IMPYD_REGISTER_PANEL_FUNCS(SimpleAlbumArt, IMPYD_BUILTIN_ID_PREFIX "simple-album-art", "Simple Album Art");
 
         std::string PanelName() override;

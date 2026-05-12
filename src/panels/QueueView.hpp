@@ -25,8 +25,6 @@ namespace ImpyD
     public:
         IMPYD_REGISTER_PANEL_FUNCS(QueueView, IMPYD_BUILTIN_ID_PREFIX "queue", "Queue View");
 
-        explicit QueueView(int panelId) : PanelBase(panelId) {}
-
         void DrawContents(Context &context) override;
 
         void SetState(Context &context);
