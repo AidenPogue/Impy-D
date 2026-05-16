@@ -23,6 +23,8 @@ namespace ImpyD
         void DrawLayoutMenu();
         void DrawFileMenu();
 
+        void AddPanel(Context &context, std::unique_ptr<PanelBase> &panel);
+
         void CreatePanelById(Context &context, const std::string &id);
 
         void SetWindowTitle(Context &context);

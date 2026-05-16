@@ -4,7 +4,7 @@
 #define CHANGE_TITLE_MODAL_ID "Change Title"
 #define OPTIONS_MODAL_ID "Options"
 
-void ImpyD::PanelBase::Initialize(int panelId)
+void ImpyD::PanelBase::SetId(int panelId)
 {
     if (panelId < 0)
     {
@@ -16,9 +16,16 @@ void ImpyD::PanelBase::Initialize(int panelId)
     }
 
     this->panelId = panelId;
+}
 
-    //Make sure titleWithId is set
-    SetTitle(title);
+int ImpyD::PanelBase::GetId() const
+{
+    return panelId;
+}
+
+bool ImpyD::PanelBase::GetIsIdValid() const
+{
+    return panelId >= 0;
 }
 
 ImpyD::PanelFlags ImpyD::PanelBase::GetPanelFlags()

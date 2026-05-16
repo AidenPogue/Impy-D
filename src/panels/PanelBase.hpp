@@ -29,7 +29,10 @@ namespace ImpyD
         virtual int PushStyleVars() {return 0;}
 
     public:
-        void Initialize(int panelId);
+        void SetId(int panelId);
+
+        int GetId() const;
+        bool GetIsIdValid() const;
 
         virtual PanelFlags GetPanelFlags();
 

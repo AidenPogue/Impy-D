@@ -63,9 +63,13 @@ namespace ImpyD
         }
     }
 
-    void MainWindow::CreatePanelById(Context &context, const std::string &id)
+    void MainWindow::AddPanel(Context &context, std::unique_ptr<PanelBase> &panel)
     {
-        auto panel = PanelFactory::Registry::CreatePanelById(id);
+        if (!panel->GetIsIdValid())
+        {
+            throw std::runtime_error("Panel does not have a valid ID.");
+        }
+
         panel->InitState(context);
 
         if (panel->GetPanelFlags() & PanelFlags_DrawEarly)
@@ -76,6 +80,15 @@ namespace ImpyD
         {
             panels.push_back(std::move(panel));
         }
+    }
+
+    void MainWindow::CreatePanelById(Context &context, const std::string &id)
+    {
+        auto panel = PanelFactory::Registry::CreatePanelById(id);
+
+        panel->SetId(nextPanelId++);
+
+        AddPanel(context, panel);
     }
 
     void MainWindow::SetWindowTitle(Context &context)
