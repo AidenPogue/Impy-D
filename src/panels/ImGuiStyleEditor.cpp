@@ -11,10 +11,6 @@ namespace ImpyD
         ImGui::ShowStyleEditor();
     }
 
-    ImGuiStyleEditor::ImGuiStyleEditor(int panelId) : PanelBase(panelId)
-    {
-    }
-
     std::string ImGuiStyleEditor::PanelName()
     {
         return GetFactoryName();
