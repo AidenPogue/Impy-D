@@ -20,6 +20,11 @@ namespace ImpyD
         }
     }
 
+    void MainWindow::Initialize(Context &context)
+    {
+        RequestTitleUpdate(context);
+    }
+
     void MainWindow::DrawLayoutMenu()
     {
         if (ImGui::BeginMainMenuBar())
@@ -141,11 +146,16 @@ namespace ImpyD
         }
     }
 
+    void MainWindow::RequestTitleUpdate(Context &context)
+    {
+        songFuture = context.GetClient().GetCurrentSong();
+    }
+
     void MainWindow::SendIdleEventToPanels(Context &context, mpd_idle event)
     {
         if (event & MPD_IDLE_PLAYER)
         {
-            songFuture = context.GetClient().GetCurrentSong();
+            RequestTitleUpdate(context);
         }
 
         for (const auto &panel : panels)

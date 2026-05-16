@@ -138,6 +138,7 @@ int main(int, char**)
 
     ImpyD::Context context(nullptr, 0);
     auto mainWindow = ImpyD::MainWindow();
+    mainWindow.Initialize(context);
 
     while (!glfwWindowShouldClose(window))
     {

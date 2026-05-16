@@ -12,7 +12,6 @@ namespace ImpyD
 {
     class MainWindow
     {
-    private:
         std::list<std::unique_ptr<PanelBase>> panels;
         int nextPanelId = 0;
 
@@ -32,7 +31,11 @@ namespace ImpyD
     public:
         MainWindow();
 
+        void Initialize(Context &context);
+
         void Draw(Context &context);
+
+        void RequestTitleUpdate(Context &context);
 
         void SendIdleEventToPanels(Context &context, mpd_idle event);
     };
